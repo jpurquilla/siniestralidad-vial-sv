@@ -21,7 +21,7 @@ from __future__ import annotations
 import json
 import random
 from pathlib import Path
-
+import unicodedata
 import numpy as np
 import pandas as pd
 
@@ -233,6 +233,58 @@ def estaciones_con_datos() -> pd.DataFrame:
                 }
             )
     return pd.DataFrame(filas)
+
+
+# ---------------------------------------------------------------------------
+# 3.5 Normalización de claves geográficas (nombres de distrito)
+# ---------------------------------------------------------------------------
+# El nombre de distrito NO coincide literalmente entre fuentes:
+#   - siniestros.csv escribe los nombres SIN tildes ("Ahuachapan", "Colon")
+#   - el censo (TAB_POB_AREA) los conserva CON tildes ("Ahuachapán", "Colón")
+# Un join literal perdería ~22 distritos. norm_distrito() lleva ambos lados a
+# una forma canónica (minúsculas, sin tildes, sin espacios extremos).
+#
+# Además, un distrito difiere por nomenclatura (no solo por tildes): la fuente
+# de siniestros abrevia "Villa Dolores" (Cabañas Este) como "Dolores". Los
+# casos de este tipo se corrigen con MAPEO_DISTRITOS, aplicado DESPUÉS de
+# normalizar. reconciliar_distrito() combina ambos pasos en uno.
+#
+# Esto es normalización de formato (plomería), reutilizable por NB03 y NB04.
+# La CLAVE de join y su validación de cobertura se deciden en el notebook.
+
+# Correcciones de nomenclatura fuente->censo, en forma YA NORMALIZADA.
+# Clave = nombre normalizado tal como aparece en siniestros.
+# Valor = nombre normalizado tal como aparece en el censo.
+MAPEO_DISTRITOS = {
+    "dolores": "villa dolores",  # Cabañas, Cabañas Este (reforma territorial 2023)
+}
+
+
+def norm_distrito(s: str) -> str:
+    """
+    Normaliza un nombre de distrito a forma canónica para el join:
+    minúsculas, sin tildes/diacríticos, sin espacios extremos.
+    Devuelve el valor tal cual si es NaN/None (no fuerza a str).
+    """
+    if pd.isna(s):
+        return s
+    s = str(s).strip().lower()
+    s = "".join(
+        c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c)
+    )
+    return s
+
+
+def reconciliar_distrito(s: str) -> str:
+    """
+    Normaliza (norm_distrito) y luego aplica MAPEO_DISTRITOS para corregir
+    diferencias de nomenclatura entre fuentes. Es la función a usar como
+    clave de join distrito<->censo/clima en NB03.
+    """
+    n = norm_distrito(s)
+    if pd.isna(n):
+        return n
+    return MAPEO_DISTRITOS.get(n, n)
 
 
 def load_feriados() -> pd.DataFrame:
