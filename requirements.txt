@@ -1,0 +1,52 @@
+# ============================================================
+# Núcleo de datos
+# ============================================================
+numpy==1.26.4
+pandas==2.2.2
+openpyxl==3.1.5          # leer/escribir .xlsx (feriados, censo, estaciones)
+scipy==1.13.1
+
+# ============================================================
+# Visualización (EDA, NB02) + mapas
+# ============================================================
+matplotlib==3.9.2
+seaborn==0.13.2
+folium==0.17.0           # mapas interactivos de accidentalidad
+plotly==5.24.1           # gráficos interactivos / prototipo
+
+# ============================================================
+# Geoespacial (ST-DBSCAN, infraestructura vial)
+# NOTA: geopandas fijado en 0.14.x porque osmnx 1.9.4 exige geopandas<0.15
+# ============================================================
+geopandas==0.14.4
+shapely==2.0.6
+osmnx==1.9.4             # red vial desde OpenStreetMap
+
+# ============================================================
+# Modelado estadístico y ML (NB03, NB04)
+# ============================================================
+scikit-learn==1.5.2      # baselines, clustering, métricas
+statsmodels==0.14.2      # Poisson / Binomial Negativa + AIC
+
+# ============================================================
+# Modelos avanzados + optimización (Etapa 2)
+# ============================================================
+xgboost==2.1.1
+optuna==4.0.0            # búsqueda de hiperparámetros
+
+# ============================================================
+# Interpretabilidad (NB04 + Etapa 2)
+# ============================================================
+shap==0.46.0
+lime==0.2.0.1
+
+# ============================================================
+# Prototipo de despliegue (Etapa 2)
+# ============================================================
+streamlit==1.39.0
+
+# ============================================================
+# Entorno de notebooks
+# ============================================================
+jupyter==1.1.1
+ipykernel==6.29.5

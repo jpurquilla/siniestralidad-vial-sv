@@ -1,0 +1,24 @@
+# --- Datos: SÍ se versionan en este proyecto (raw + processed) ---
+# --- Modelos: SÍ se versionan (entregables, el jurado los revisa) ---
+# (data/ y models/ se dejan rastreados intencionalmente para
+#  reproducibilidad y entrega)
+
+# --- Entorno ---
+.env
+venv/
+.venv/
+env/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# --- Jupyter ---
+*.ipynb_checkpoints
+
+# --- Sistema operativo / editor ---
+.DS_Store
+.idea/
+.vscode/
