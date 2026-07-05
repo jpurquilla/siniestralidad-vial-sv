@@ -1,0 +1,60 @@
+{
+  "notebook": "NB04_modelos_baseline",
+  "seed": 42,
+  "tarea_frecuencia": {
+    "descripcion": "Regresión de conteo (distrito x fecha x franja). Métricas en escala de conteo.",
+    "metrica_principal": "MAE / RMSE",
+    "modelos": {
+      "baseline_media": {
+        "modelo": "Predictor ingenuo (media)",
+        "constante_predicha": 0.124398,
+        "MAE": 0.246301,
+        "RMSE": 0.491455
+      },
+      "poisson": {
+        "modelo": "Regresión de Poisson (offset log_exposicion)",
+        "MAE": 0.202224,
+        "RMSE": 0.434255,
+        "AIC": 289662.08,
+        "log_likelihood": -144818.04
+      },
+      "binomial_negativa": {
+        "modelo": "Regresión Binomial Negativa (offset log_exposicion)",
+        "alpha": 1.0,
+        "MAE": 0.201136,
+        "RMSE": 0.435272,
+        "AIC": 289004.73,
+        "log_likelihood": -144489.36
+      },
+      "random_forest": {
+        "modelo": "Random Forest Regressor (log_exposicion como feature)",
+        "n_estimators": 200,
+        "MAE": 0.191815,
+        "RMSE": 0.424042
+      }
+    }
+  },
+  "tarea_severidad": {
+    "descripcion": "Clasificación 3 clases (solo_danos/con_lesionados/fatal). Desbalance 8.3x.",
+    "metrica_principal": "F1-macro (accuracy secundaria por desbalance)",
+    "modelos": {
+      "baseline_mayoritaria": {
+        "modelo": "Baseline clase mayoritaria",
+        "accuracy": 0.515781,
+        "f1_macro": 0.22685,
+        "clase_predicha": "solo_danos"
+      },
+      "logistica_multinomial": {
+        "modelo": "Regresión Logística multinomial (class_weight=balanced)",
+        "accuracy": 0.404897,
+        "f1_macro": 0.278118
+      },
+      "random_forest": {
+        "modelo": "Random Forest Classifier (class_weight=balanced)",
+        "n_estimators": 200,
+        "accuracy": 0.393972,
+        "f1_macro": 0.324721
+      }
+    }
+  }
+}

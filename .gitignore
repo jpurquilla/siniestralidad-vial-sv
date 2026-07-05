@@ -22,3 +22,7 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+
+# Modelo entrenado demasiado grande para GitHub (>100 MB).
+# Se regenera de forma reproducible ejecutando NB04 con SEED=42.
+models/frecuencia_random_forest.pkl
