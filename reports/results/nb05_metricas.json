@@ -1,0 +1,66 @@
+{
+  "notebook": "NB05_exposicion_y_tendencia",
+  "generado": "2026-09-14T21:52:53",
+  "seed": 42,
+  "matriz": "matriz_frecuencia_v2.csv",
+  "offset": "log_exposicion_v2",
+  "correccion": {
+    "problema_a_tendencia": "corregido",
+    "problema_b_territorial": "documentado como limitacion",
+    "g_anual": 0.078426,
+    "brecha_original_pct": 20.69
+  },
+  "tarea_frecuencia": {
+    "descripcion": "Regresion de conteo sobre matriz v2 con exposicion corregida.",
+    "metrica_principal": "Calibracion (pred/obs), RMSE secundario",
+    "nota_mae": "El MAE se deteriora por diseño: con 89.7% de ceros premia la subestimacion sistematica. Ver Seccion 10.1.",
+    "modelos": {
+      "poisson": {
+        "modelo": "Regresión de Poisson (offset log_exposicion_v2)",
+        "MAE": 0.212615,
+        "RMSE": 0.429055,
+        "AIC": 289438.77,
+        "log_likelihood": -144706.38,
+        "media_predicha": 0.144831
+      },
+      "binomial_negativa": {
+        "modelo": "Regresión Binomial Negativa (offset log_exposicion_v2)",
+        "alpha": 1.0,
+        "MAE": 0.211235,
+        "RMSE": 0.429701,
+        "AIC": 288836.57,
+        "log_likelihood": -144405.28,
+        "media_predicha": 0.141455
+      },
+      "random_forest": {
+        "modelo": "Random Forest Regressor (log_exposicion_v2 como feature)",
+        "n_estimators": 200,
+        "MAE": 0.205268,
+        "RMSE": 0.418678,
+        "media_predicha": 0.150994
+      }
+    }
+  },
+  "calibracion": {
+    "Regresión de Poisson": 0.9646,
+    "Regresión Binomial N": 0.9422,
+    "Random Forest Regres": 1.0057
+  },
+  "validacion": {
+    "deriva_18_meses_nb": 0.0027,
+    "deriva_18_meses_rf": -0.0432,
+    "sigma_calibracion_rf_e1": 0.071,
+    "sigma_calibracion_rf_v2": 0.04,
+    "spearman_rf_e1_vs_obs": 0.9903,
+    "spearman_rf_v2_vs_obs": 0.9373,
+    "spearman_tercil_alto_rf_v2": 0.9456,
+    "estructura_preservada": true,
+    "variacion_max_coeficientes_pct": 0.608
+  },
+  "handoff_nb07": {
+    "funcion_objetivo": "priorizar calibracion y RMSE sobre MAE",
+    "evaluar_tambien": "metricas ordinales (Spearman en tercil alto)",
+    "candidata_eliminacion": "poblacion_baja (importancia Gini 0.0001)",
+    "objetivo": "preservar calibracion sin perdida ordinal"
+  }
+}

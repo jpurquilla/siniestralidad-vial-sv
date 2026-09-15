@@ -1,0 +1,140 @@
+{
+  "notebook": "NB06_impacto_ley_tolerancia_cero",
+  "generado": "2026-09-14T22:46:22",
+  "fuente_oficial": [
+    {
+      "anio": 2022,
+      "siniestros": 17408,
+      "fallecidos": 1352,
+      "cobertura": "completo"
+    },
+    {
+      "anio": 2023,
+      "siniestros": 18463,
+      "fallecidos": 1256,
+      "cobertura": "completo"
+    },
+    {
+      "anio": 2024,
+      "siniestros": 20301,
+      "fallecidos": 1303,
+      "cobertura": "completo"
+    },
+    {
+      "anio": 2025,
+      "siniestros": 22265,
+      "fallecidos": 1238,
+      "cobertura": "completo"
+    },
+    {
+      "anio": 2026,
+      "siniestros": 11509,
+      "fallecidos": 734,
+      "cobertura": "parcial (ene-jun)"
+    }
+  ],
+  "ley": {
+    "aprobacion": "2024-12-20",
+    "fechas_candidatas_vigencia": [
+      "2024-12-20",
+      "2024-12-26",
+      "2024-12-28",
+      "2024-12-29",
+      "2025-01-05"
+    ],
+    "nota": "fecha de vigencia en disputa; la particion anual no depende de cual se elija"
+  },
+  "control_negativo": {
+    "coincidencia_anual_matriz_oficial": true,
+    "quiebre_subanual_detectado": false,
+    "criterio": "ventanas sobre serie normalizada por nivel anual, contra distribucion de todas las fechas de corte"
+  },
+  "umbrales": {
+    "minimo_pct": 4.32,
+    "conservador_pct": 8.32,
+    "origen": "sigma_calibracion_rf_v2 y deriva_18_meses_rf de NB05"
+  },
+  "contrafactual": {
+    "2025": {
+      "contrafactual": 22497.095335588754,
+      "oficial": 22265.0,
+      "brecha_pct": -1.0316680092544939,
+      "lectura": "dentro del error del modelo"
+    },
+    "2026": {
+      "contrafactual": 11469.350057706946,
+      "oficial": 11509.0,
+      "brecha_pct": 0.3457034800887481,
+      "lectura": "dentro del error del modelo"
+    }
+  },
+  "sensibilidad_exposicion": {
+    "2025": {
+      "g_min_dentro_umbral_pct": 6.75,
+      "g_max_dentro_umbral_pct": 9.0
+    },
+    "2026": {
+      "g_min_dentro_umbral_pct": 6.5,
+      "g_max_dentro_umbral_pct": 8.5
+    }
+  },
+  "resumen": [
+    {
+      "metrica": "siniestros",
+      "periodo": "2025",
+      "var_interanual_pct": 9.674400275848472,
+      "brecha_tendencia_min": -0.25523608231167777,
+      "brecha_tendencia_max": 3.407461409411812,
+      "brecha_contrafactual_pct": -1.0316680092544939,
+      "lectura": "dentro del error del modelo"
+    },
+    {
+      "metrica": "siniestros",
+      "periodo": "2026 ene-jun",
+      "var_interanual_pct": NaN,
+      "brecha_tendencia_min": NaN,
+      "brecha_tendencia_max": NaN,
+      "brecha_contrafactual_pct": 0.3457034800887481,
+      "lectura": "dentro del error del modelo"
+    },
+    {
+      "metrica": "fallecidos",
+      "periodo": "2025",
+      "var_interanual_pct": -4.988488104374522,
+      "brecha_tendencia_min": -8.415610943280427,
+      "brecha_tendencia_max": 2.273538282552279,
+      "brecha_contrafactual_pct": NaN,
+      "lectura": "sin contrafactual; signo no determinado"
+    },
+    {
+      "metrica": "letalidad",
+      "periodo": "2025",
+      "var_interanual_pct": -13.369472131457771,
+      "brecha_tendencia_min": -8.181256379234984,
+      "brecha_tendencia_max": -1.096558325100075,
+      "brecha_contrafactual_pct": NaN,
+      "lectura": "sin contrafactual; signo estable, magnitud imprecisa"
+    },
+    {
+      "metrica": "letalidad",
+      "periodo": "2026 ene-jun",
+      "var_interanual_pct": 14.699235872298289,
+      "brecha_tendencia_min": 11.622631234215248,
+      "brecha_tendencia_max": 29.512704689670684,
+      "brecha_contrafactual_pct": NaN,
+      "lectura": "parcial ene-jun; sin agosto"
+    }
+  ],
+  "limitaciones": [
+    "dataset individual sintetico; el analisis corre sobre agregados anuales oficiales",
+    "parque vehicular no medido; la conclusion principal es condicional al rango 6.75-9.00% de crecimiento",
+    "sin contrafactual de mortalidad por desempeno insuficiente del modelo de severidad",
+    "2026 cubre 181 dias y excluye el periodo agostino",
+    "sin proporcion de siniestros con alcohol involucrado"
+  ],
+  "figuras": [
+    "nb06_01_serie_oficial.png",
+    "nb06_02_contrafactual.png",
+    "nb06_03_sensibilidad.png"
+  ]
+}

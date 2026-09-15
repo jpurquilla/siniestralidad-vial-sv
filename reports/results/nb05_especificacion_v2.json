@@ -1,0 +1,64 @@
+{
+  "notebook": "NB05_exposicion_y_tendencia",
+  "generado": "2026-09-14T21:32:28",
+  "seed": 42,
+  "matriz": {
+    "archivo": "matriz_frecuencia_v2.csv",
+    "origen": "matriz_frecuencia.csv",
+    "filas": 676504,
+    "columnas": 24
+  },
+  "correccion_tendencia": {
+    "aplicada": true,
+    "problema": "Subestimacion sistematica por crecimiento interanual no modelado",
+    "brecha_original_pct": 20.69,
+    "metodo": "Crecimiento interanual compuesto (CAGR)",
+    "g_mensual": 0.00631168,
+    "g_anual": 0.07842554,
+    "origen_temporal": "2022-01-01",
+    "estimado_con": "medias anuales 2022 y 2024 (solo train)",
+    "error_extrapolacion_test_pct": 2.3,
+    "via_de_aplicacion": "offset de exposicion (no como variable predictora)",
+    "justificacion": "Los modelos basados en arboles no extrapolan fuera del rango de entrenamiento. Incorporar la tendencia como variable no seria utilizable por Random Forest ni XGBoost."
+  },
+  "correccion_territorial": {
+    "aplicada": false,
+    "problema": "Heterogeneidad territorial no explicada por variables disponibles",
+    "evidencia": {
+      "correlacion_es_amss": -0.02,
+      "correlacion_pct_urbano": -0.124,
+      "correlacion_es_cabecera": -0.185,
+      "ratio_medio_amss": 1.017
+    },
+    "decision": "Declarada como limitacion. Requiere fuentes externas.",
+    "fuentes_requeridas": [
+      "parque vehicular por distrito",
+      "densidad de red vial (OSMnx)",
+      "aforos vehiculares del VMT"
+    ]
+  },
+  "esquema_features": {
+    "target": "n_siniestros",
+    "offset": "log_exposicion_v2",
+    "offset_anterior": "log_exposicion",
+    "features": [
+      "es_lluviosa",
+      "es_finde",
+      "dia_semana",
+      "periodo_agostino",
+      "es_feriado",
+      "prcp_mensual",
+      "pct_urbano",
+      "poblacion_baja"
+    ],
+    "categoricas": [
+      "dia_semana"
+    ],
+    "nota": "El orden de 'features' es normativo. Los modelos GLM se ajustan sobre get_dummies(features, columns=categoricas, drop_first=True) mas constante, con las categorias fijadas por el conjunto train."
+  },
+  "split": {
+    "train": "2022-01-01 a 2024-12-31",
+    "test": "2025-01-01 a 2026-06-30",
+    "columna": "split"
+  }
+}

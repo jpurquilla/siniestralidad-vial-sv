@@ -23,6 +23,8 @@ __pycache__/
 .idea/
 .vscode/
 
-# Modelo entrenado demasiado grande para GitHub (>100 MB).
-# Se regenera de forma reproducible ejecutando NB04 con SEED=42.
+# Archivos/modelos demasiado grandes para GitHub (>100 MB).
+# Se regeneran de forma reproducible ejecutando NB04, NB05 y NB06 con SEED=42.
 models/frecuencia_random_forest.pkl
+models/frecuencia_random_forest_v2.pkl
+data/processed/matriz_frecuencia_v2.csv
