@@ -1,0 +1,42 @@
+{
+  "notebook": "NB09_calibracion_y_submodelo_severidad",
+  "declarado": "2026-09-15T11:00:29",
+  "seed": 42,
+  "D1": {
+    "enunciado": "Diagnostico de calibracion de los modelos NB04 sobre el test, una sola vez",
+    "fundamento": "unico conjunto no visto por esos modelos"
+  },
+  "D2": {
+    "enunciado": "Correccion ajustada y decidida sobre bloques internos de train",
+    "bloques": {
+      "ajuste": 2022,
+      "calibracion": 2023,
+      "decision": 2024
+    }
+  },
+  "D3": {
+    "enunciado": "Aceptacion de la correccion",
+    "reduccion_ece_relativa_minima": 0.2,
+    "condicion_adicional": "no empeorar el Brier medio"
+  },
+  "D4": {
+    "enunciado": "Submodelo: seleccion en ajuste 2022-2023 / validacion 2024; test una sola vez"
+  },
+  "D5": {
+    "enunciado": "Metrica principal del submodelo",
+    "metrica": "AUC-PR de la clase fatal"
+  },
+  "D6": {
+    "enunciado": "La contribucion de las variables de victima requiere IC bootstrap que excluya cero",
+    "n_remuestreos": 2000,
+    "nivel": 0.95
+  },
+  "D7": {
+    "enunciado": "Submodelo sin class_weight balanced",
+    "costo_declarado": "rompe continuidad con NB04, que si lo usa"
+  },
+  "D8": {
+    "enunciado": "ECE con 10 bins de igual anchura",
+    "n_bins": 10
+  }
+}

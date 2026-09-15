@@ -1,0 +1,44 @@
+{
+  "modo": "demostrativo",
+  "estructura_escala_gruesa": true,
+  "estructura_escala_fina": false,
+  "efecto_fino_maximo": 0.007050150008069855,
+  "umbral_efecto_fino": 0.05,
+  "interpretable_como_hotspots_viales": false,
+  "origen_estructura_gruesa": "reparto por exposicion del generador (poblacion censal, urbanizacion, AMSS, parque vehicular); ver NB01 y NB03",
+  "T1": {
+    "decimales_max": 6,
+    "proporcion_repetidas": 0.0,
+    "cond_decimales": true,
+    "cond_repetidas": false,
+    "positivo": false
+  },
+  "T2": {
+    "n_distritos": 95,
+    "proporcion_agrupados": 0.631578947368421,
+    "razon_mediana": 0.9218641705376848,
+    "positivo": true
+  },
+  "T3": {
+    "celda_fina_grados": 0.001,
+    "celda_gruesa_grados": 0.01,
+    "ocupadas_observadas": 64494,
+    "ventana_a_convexa": {
+      "media": 72853.0,
+      "min": 72723,
+      "max": 73118,
+      "razon": 0.8852621031391981
+    },
+    "ventana_b_celda_gruesa": {
+      "media": 64730.84210526316,
+      "min": 64572,
+      "max": 64838,
+      "razon": 0.9963411242993253
+    },
+    "vmc_observada": 0.001057876480526279,
+    "vmc_simulada_b": 0.0010653876230857747,
+    "razon_vmc_b": 0.9929498499919301
+  },
+  "clark_evans_demostracion_sesgo": 0.7929323311533995,
+  "regla": "Veredicto por escala: estructura gruesa (>1 km) y fina (<1 km) se determinan por separado; solo la fina habilita leer los agrupamientos como concentraciones viales"
+}

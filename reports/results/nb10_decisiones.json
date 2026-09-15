@@ -1,0 +1,67 @@
+{
+  "notebook": "NB10_clustering_espacio_temporal",
+  "declarado": "2026-09-15T11:52:42",
+  "seed": 42,
+  "D1": {
+    "enunciado": "La estructura espacial se evalua antes de ejecutar ST-DBSCAN"
+  },
+  "D2": {
+    "enunciado": "Prueba principal: envolvente Monte Carlo, no Clark-Evans",
+    "fundamento": "Clark-Evans nacional confunde heterogeneidad con agrupamiento"
+  },
+  "D3": {
+    "enunciado": "Veredicto por escala: estructura gruesa (>1 km) y fina (<1 km) se determinan por separado; solo la fina habilita leer los agrupamientos como concentraciones viales",
+    "corregido_post_observacion": true,
+    "motivo_correccion": "El criterio original era una marca binaria gobernada por T1 y T2 contra la envolvente convexa. T2 dio positivo y el control de ventana dio nulo: la contradiccion estaba en el criterio, que confundia dos escalas distintas.",
+    "umbral_efecto_fino": 0.05,
+    "T1": {
+      "definicion": "firma de geocodificador: precision truncada Y repeticion masiva",
+      "umbral_decimales": 6,
+      "umbral_repetidas": 0.01,
+      "corregido_post_observacion": true,
+      "correccion": "Se declaro como disyuncion y se corrigio a conjuncion. Motivo: redondear a 6 decimales (~11 cm) es cosmetico y no produce colisiones entre sorteos continuos; la firma de un geocodificador exige ambas condiciones a la vez. Ver Seccion 2.2."
+    },
+    "T2": {
+      "definicion": "envolvente Monte Carlo de la distancia media al vecino mas cercano",
+      "n_simulaciones": 199,
+      "n_minimo_por_distrito": 50,
+      "umbral_distritos_agrupados": 0.3333333333333333
+    },
+    "T3": {
+      "definicion": "ocupacion de grilla fina contra envolvente simulada",
+      "celda_grados": 0.001,
+      "papel": "estructura gruesa"
+    },
+    "control": {
+      "definicion": "simulacion uniforme dentro de la celda gruesa de cada punto: conserva la intensidad a ~1 km y destruye la estructura mas fina",
+      "papel": "DECISORIO para la estructura fina"
+    }
+  },
+  "D4": {
+    "enunciado": "Distancia espacial Haversine en metros",
+    "contraste_nb03": "NB03 uso euclidiana porque solo necesitaba un ordenamiento de cercania; aqui eps1 es un radio absoluto"
+  },
+  "D5": {
+    "enunciado": "eps2 en dias enteros"
+  },
+  "D6": {
+    "enunciado": "Vecindad como conjuncion de dos umbrales (Birant y Kut 2007)"
+  },
+  "D7": {
+    "enunciado": "Silueta sobre distancia de Chebyshev normalizada, sin ruido",
+    "n_muestra": 10000
+  },
+  "D8": {
+    "enunciado": "Seleccion: mayor silueta entre combinaciones admisibles",
+    "min_clusters": 2,
+    "max_clusters": 200,
+    "ruido_min": 0.2,
+    "ruido_max": 0.95,
+    "respaldo": {
+      "activacion": "ninguna combinacion admisible",
+      "regla": "mayor silueta entre las que producen >=2 agrupamientos y ruido <= 99.5%; se denomina configuracion de referencia, no seleccionada",
+      "corregido_post_observacion": true,
+      "motivo": "El criterio original no preveia el caso de conjunto admisible vacio, que es el desenlace esperable en un proceso de puntos homogeneo."
+    }
+  }
+}

@@ -1,0 +1,243 @@
+{
+  "notebook": "NB09_calibracion_y_submodelo_severidad",
+  "generado": "2026-09-15T11:01:44",
+  "seed": 42,
+  "seccion_2_calibracion": {
+    "desplazamiento_prior": {
+      "logistica_multinomial": {
+        "dist_frecuencia_real": 0.1787282700978087,
+        "dist_uniforme": 0.006048974725625526
+      },
+      "random_forest": {
+        "dist_frecuencia_real": 0.11570380357894251,
+        "dist_uniforme": 0.0690734412444917
+      }
+    },
+    "brier_por_clase": {
+      "logistica_multinomial": {
+        "solo_danos": 0.2770078561244775,
+        "con_lesionados": 0.25446199718617957,
+        "fatal": 0.1275835363572349,
+        "medio": 0.2196844632226306
+      },
+      "random_forest": {
+        "solo_danos": 0.28780595330111813,
+        "con_lesionados": 0.27313624723332364,
+        "fatal": 0.11418992336167208,
+        "medio": 0.22504404129870462
+      }
+    },
+    "ece": {
+      "logistica_multinomial": {
+        "solo_danos": {
+          "ancho_igual": 0.17458529575407325,
+          "cuantiles": 0.17458529575407322
+        },
+        "con_lesionados": {
+          "ancho_igual": 0.09350710939263451,
+          "cuantiles": 0.09350710939263449
+        },
+        "fatal": {
+          "ancho_igual": 0.2680924051467076,
+          "cuantiles": 0.2680924051467077
+        },
+        "medio": {
+          "ancho_igual": 0.17872827009780512,
+          "cuantiles": 0.17872827009780515
+        }
+      },
+      "random_forest": {
+        "solo_danos": {
+          "ancho_igual": 0.1709461175722818,
+          "cuantiles": 0.17023483850528542
+        },
+        "con_lesionados": {
+          "ancho_igual": 0.1284261885136893,
+          "cuantiles": 0.1293451047931784
+        },
+        "fatal": {
+          "ancho_igual": 0.1994624758708964,
+          "cuantiles": 0.2001092557170027
+        },
+        "medio": {
+          "ancho_igual": 0.16627826065228915,
+          "cuantiles": 0.16656306633848883
+        }
+      }
+    },
+    "rango_p05_p95_medio": {
+      "logistica_multinomial": 0.14453190343298972,
+      "random_forest": 0.5594552768157672
+    },
+    "correccion_platt": {
+      "logistica_multinomial": {
+        "sin_calibrar": {
+          "ece_medio": 0.17482583007492192,
+          "brier_medio": 0.22042047871691609,
+          "ece_por_clase": {
+            "solo_danos": 0.1873761828510691,
+            "con_lesionados": 0.07523264303298151,
+            "fatal": 0.26186866434071515
+          }
+        },
+        "calibrado": {
+          "ece_medio": 0.00871309836908426,
+          "brier_medio": 0.18183261319223845,
+          "ece_por_clase": {
+            "solo_danos": 0.016138377334554886,
+            "con_lesionados": 0.0054005278885859345,
+            "fatal": 0.004600389884111959
+          }
+        },
+        "reduccion_ece_relativa": 0.9501612641258431,
+        "cumple_umbral_ece": true,
+        "no_empeora_brier": true,
+        "aceptada": true
+      },
+      "random_forest": {
+        "sin_calibrar": {
+          "ece_medio": 0.17056707639781168,
+          "brier_medio": 0.2302712234314724,
+          "ece_por_clase": {
+            "solo_danos": 0.18547152765779262,
+            "con_lesionados": 0.15700222310058046,
+            "fatal": 0.16922747843506203
+          }
+        },
+        "calibrado": {
+          "ece_medio": 0.0029760493830871602,
+          "brier_medio": 0.1829705228519224,
+          "ece_por_clase": {
+            "solo_danos": 0.004101555606305318,
+            "con_lesionados": 0.0006262714370863487,
+            "fatal": 0.004200321105869813
+          }
+        },
+        "reduccion_ece_relativa": 0.9825520291140704,
+        "cumple_umbral_ece": true,
+        "no_empeora_brier": true,
+        "aceptada": true
+      }
+    },
+    "criterio_D3_reduccion_ece_relativa": 0.2
+  },
+  "seccion_3_submodelo": {
+    "universo": {
+      "registros": 43105,
+      "prevalencia_global_fatal": 0.13100568379538335,
+      "train": 26751,
+      "test": 16354,
+      "ajuste": 17175,
+      "validacion": 9576
+    },
+    "validacion_2024": {
+      "sin_victima": {
+        "auc_pr": 0.14132301874277856,
+        "roc_auc": 0.5295653761502251,
+        "piso": 0.13084795321637427
+      },
+      "con_victima": {
+        "auc_pr": 0.23884329064789125,
+        "roc_auc": 0.6853469251592644,
+        "piso": 0.13084795321637427
+      }
+    },
+    "bootstrap_validacion": {
+      "delta_puntual": 0.0975202719051127,
+      "delta_medio_boot": 0.0979096603973158,
+      "ic_inf": 0.08152777746576338,
+      "ic_sup": 0.1150679515613924,
+      "p_mayor_que_cero": 1.0,
+      "n_remuestreos": 2000,
+      "excluye_cero": true
+    },
+    "test": {
+      "sin_victima": {
+        "auc_pr": 0.13479609613930654,
+        "roc_auc": 0.5357259812778367,
+        "brier": 0.1053516816200558,
+        "precision_fatal": 0.13092979127134724,
+        "recall_fatal": 0.4364786505007907,
+        "f1_fatal": 0.20143534849774966,
+        "vp": 828,
+        "fp": 5496,
+        "fn": 1069,
+        "tn": 8961,
+        "umbral": 0.1494259823827821,
+        "lift": 1.1620745156890981
+      },
+      "con_victima": {
+        "auc_pr": 0.21628436656560884,
+        "roc_auc": 0.6835277859789537,
+        "brier": 0.09928797168200869,
+        "precision_fatal": 0.18180423442773858,
+        "recall_fatal": 0.6246705324196099,
+        "f1_fatal": 0.2816399286987522,
+        "vp": 1185,
+        "fp": 5333,
+        "fn": 712,
+        "tn": 9124,
+        "umbral": 0.1494259823827821,
+        "lift": 1.8645833056478476
+      }
+    },
+    "bootstrap_test": {
+      "delta_puntual": 0.0814882704263023,
+      "delta_medio_boot": 0.08119465686763669,
+      "ic_inf": 0.06892708985218592,
+      "ic_sup": 0.09418122997760403,
+      "p_mayor_que_cero": 1.0,
+      "n_remuestreos": 2000,
+      "excluye_cero": true
+    },
+    "piso_test": 0.11599608658432188,
+    "calibracion_submodelo": {
+      "ece": 0.025030377899314674,
+      "brier": 0.09928797168200869
+    }
+  },
+  "seccion_4_interpretabilidad": {
+    "n_shap": 500,
+    "importancia_shap": {
+      "grupo_vulnerable": 0.06359107960049948,
+      "tipo_vehiculo": 0.019339828134384295,
+      "rango_etario": 0.017574278788790806,
+      "tipo_siniestro": 0.008241521367070508,
+      "factor_causante_grp": 0.007760329666396311,
+      "dia_semana": 0.007355377947781988,
+      "es_lluviosa": 0.004401380598212187,
+      "condicion_via": 0.0035342420974896777,
+      "es_finde": 0.003237913195825919,
+      "es_feriado": 0.001389941075148436,
+      "periodo_agostino": 0.0010052408323330939
+    },
+    "peso_variables_victima": 0.590589311446562,
+    "letalidad_por_grupo_unidad_siniestro": {
+      "Peaton": {
+        "n": 10455,
+        "fatales": 2398,
+        "letalidad": 0.22936394069823052
+      },
+      "Motociclista": {
+        "n": 13907,
+        "fatales": 2086,
+        "letalidad": 0.14999640468828648
+      },
+      "Otro": {
+        "n": 14585,
+        "fatales": 593,
+        "letalidad": 0.04065821049022969
+      },
+      "Ciclista": {
+        "n": 4158,
+        "fatales": 570,
+        "letalidad": 0.1370851370851371
+      }
+    },
+    "caso_lime": {
+      "id_siniestro": "SV-2025-076926",
+      "probabilidad": 0.0052799366215299575,
+      "r2_local": 0.4901061230235705
+    }
+  }
+}

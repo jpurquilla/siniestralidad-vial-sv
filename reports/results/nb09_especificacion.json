@@ -1,0 +1,199 @@
+{
+  "notebook": "NB09_calibracion_y_submodelo_severidad",
+  "generado": "2026-09-15T11:01:44",
+  "seed": 42,
+  "matriz": "matriz_severidad.csv",
+  "unidad_observacion": "siniestro individual",
+  "split": {
+    "train": "2022-01-01 a 2024-12-31",
+    "test": "2025-01-01 a 2026-06-30",
+    "columna": "split",
+    "origen": "NB03, no alterado"
+  },
+  "particion_interna": {
+    "seccion_2": {
+      "ajuste": 2022,
+      "calibracion": 2023,
+      "decision": 2024
+    },
+    "seccion_3": {
+      "ajuste": "2022-2023",
+      "validacion": 2024
+    }
+  },
+  "modelos": {
+    "severidad_condicional_nb09.pkl": {
+      "algoritmo": "RandomForestClassifier",
+      "tarea": "binaria: fatal (1) contra con_lesionados (0)",
+      "universo": "siniestros con victima (nivel_riesgo != solo_danos)",
+      "columnas": [
+        "factor_causante_grp",
+        "tipo_siniestro",
+        "tipo_vehiculo",
+        "condicion_via",
+        "es_lluviosa",
+        "es_finde",
+        "dia_semana",
+        "periodo_agostino",
+        "es_feriado",
+        "grupo_vulnerable",
+        "rango_etario"
+      ],
+      "categoricas": [
+        "factor_causante_grp",
+        "tipo_siniestro",
+        "tipo_vehiculo",
+        "condicion_via",
+        "dia_semana",
+        "grupo_vulnerable",
+        "rango_etario"
+      ],
+      "codificacion": "cat.codes con categorias fijadas por el bloque de ajuste; categoria no vista -> -1",
+      "categorias_por_columna": {
+        "factor_causante_grp": [
+          "Adelantamiento Antireglamentario",
+          "Circular en Reversa",
+          "Distracción del Conductor",
+          "Estado de Ebriedad o Droga",
+          "Giro Incorrecto",
+          "Imprudencia del Peatón",
+          "Inexperiencia",
+          "Invadir Carril",
+          "No Guardar Distancia Reglamentaria",
+          "No Respetar Señales de Tránsito",
+          "Otros",
+          "Velocidad Excesiva"
+        ],
+        "tipo_siniestro": [
+          "Atropello",
+          "Caracteristicas especiales",
+          "Choque contra objeto fijo",
+          "Colision",
+          "Volcamiento"
+        ],
+        "tipo_vehiculo": [
+          "Automovil",
+          "Bus",
+          "Camion",
+          "Motocicleta",
+          "Otro",
+          "Pick-up"
+        ],
+        "condicion_via": [
+          "Con lodo/derrame",
+          "Humeda",
+          "Seca"
+        ],
+        "dia_semana": [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "grupo_vulnerable": [
+          "Ciclista",
+          "Motociclista",
+          "Otro",
+          "Peaton"
+        ],
+        "rango_etario": [
+          "0-15",
+          "16-20",
+          "21-25",
+          "26-30",
+          "31-35",
+          "36-40",
+          "41-45",
+          "46-50",
+          "51-55",
+          "56-60",
+          "61-65",
+          "66-70",
+          "71+"
+        ]
+      },
+      "hiperparametros": {
+        "n_estimators": 300,
+        "min_samples_leaf": 5,
+        "max_features": "sqrt",
+        "random_state": 42
+      },
+      "class_weight": null,
+      "umbral_operacion": 0.1494259823827821,
+      "umbral_seleccionado_en": "validacion 2024, maximo F1 de la clase fatal",
+      "advertencia": "El umbral NO esta dentro del objeto serializado."
+    },
+    "severidad_condicional_sin_victima_nb09.pkl": {
+      "algoritmo": "RandomForestClassifier",
+      "proposito": "control de ablacion; no es un modelo de produccion",
+      "columnas": [
+        "factor_causante_grp",
+        "tipo_siniestro",
+        "tipo_vehiculo",
+        "condicion_via",
+        "es_lluviosa",
+        "es_finde",
+        "dia_semana",
+        "periodo_agostino",
+        "es_feriado"
+      ]
+    }
+  },
+  "modelos_nb04_consumidos": {
+    "severidad_logistica.pkl": {
+      "codificacion": "get_dummies(drop_first=True)",
+      "columnas": [
+        "es_lluviosa",
+        "es_finde",
+        "periodo_agostino",
+        "es_feriado",
+        "factor_causante_grp_Circular en Reversa",
+        "factor_causante_grp_Distracción del Conductor",
+        "factor_causante_grp_Estado de Ebriedad o Droga",
+        "factor_causante_grp_Giro Incorrecto",
+        "factor_causante_grp_Imprudencia del Peatón",
+        "factor_causante_grp_Inexperiencia",
+        "factor_causante_grp_Invadir Carril",
+        "factor_causante_grp_No Guardar Distancia Reglamentaria",
+        "factor_causante_grp_No Respetar Señales de Tránsito",
+        "factor_causante_grp_Otros",
+        "factor_causante_grp_Velocidad Excesiva",
+        "tipo_siniestro_Caracteristicas especiales",
+        "tipo_siniestro_Choque contra objeto fijo",
+        "tipo_siniestro_Colision",
+        "tipo_siniestro_Volcamiento",
+        "tipo_vehiculo_Bus",
+        "tipo_vehiculo_Camion",
+        "tipo_vehiculo_Motocicleta",
+        "tipo_vehiculo_Otro",
+        "tipo_vehiculo_Pick-up",
+        "condicion_via_Humeda",
+        "condicion_via_Seca",
+        "dia_semana_1",
+        "dia_semana_2",
+        "dia_semana_3",
+        "dia_semana_4",
+        "dia_semana_5",
+        "dia_semana_6"
+      ]
+    },
+    "severidad_random_forest.pkl": {
+      "codificacion": "cat.codes con mapeo de train",
+      "columnas": [
+        "factor_causante_grp",
+        "tipo_siniestro",
+        "tipo_vehiculo",
+        "condicion_via",
+        "es_lluviosa",
+        "es_finde",
+        "dia_semana",
+        "periodo_agostino",
+        "es_feriado"
+      ]
+    },
+    "nota": "classes_ de ambos es alfabetico y NO coincide con el orden declarado en NB04; indexar predict_proba por classes_ del modelo."
+  }
+}
