@@ -1,0 +1,175 @@
+{
+  "notebook": "NB08_tercil_medio_y_validacion",
+  "generado": "2026-09-15T10:08:26",
+  "seed": 42,
+  "nota_numeracion": "El submodelo condicional de severidad, previsto como NB08 en el plan original de Etapa 2, pasa a NB09; ST-DBSCAN a NB10 y fairness urbano/rural a NB11. NB08 pasa a ocupar este lugar porque el problema abierto de NB07 condiciona los modelos posteriores: antes de construir sobre el modelo de frecuencia hay que saber si su capacidad ordinal en el rango medio esta comprometida.",
+  "decisiones": {
+    "D1_particion_de_diagnostico": {
+      "decision": "Secciones 2-4 deciden sobre validacion 2024; el test se reporta como descriptivo y se evalua una sola vez en la Seccion 6.",
+      "justificacion": "La cifra que motiva el notebook se midio sobre el test. Diagnosticar y elegir remedio observandolo lo convierte en conjunto de desarrollo y contamina la estimacion final. Lo que debe evitarse no es ver el test sino decidir con el.",
+      "alternativas_descartadas": {
+        "diagnosticar_sobre_test": "La Seccion 6 no podria declarar evaluacion independiente.",
+        "ignorar_el_test": "Obliga a no examinar un numero ya publicado y se pierde la comprobacion de si el patron se repite entre periodos."
+      },
+      "costo_asumido": "Validacion 2024 cubre 12 meses contra 18 del test y esta mas cerca del entrenamiento; los valores no seran identicos. Se investiga el patron, no la reproduccion de una cifra puntual.",
+      "verificacion": "exigir_particion_de_diagnostico() + etiquetado de columnas de test"
+    },
+    "D2_factor_crecimiento_en_cv": {
+      "decision": "Reestimar el factor de crecimiento dentro de cada pliegue de la validacion cruzada temporal.",
+      "justificacion": "El factor de NB05 se estimo con las medias anuales de 2022 y 2024, es decir con todo el train. Un pliegue que entrena en 2022 y valida en 2023 estaria usando informacion de 2024: fuga temporal dentro del procedimiento cuyo proposito es detectarlas.",
+      "alternativa_descartada": "Factor fijo con la fuga declarada como limitacion.",
+      "costo_asumido": "Los pliegues tempranos tienen estimaciones mas ruidosas, y los resultados no son comparables con NB05/NB07, que usan el factor global. El ruido de los pliegues tempranos es informacion util: indica cuanta historia requiere el procedimiento para estabilizarse.",
+      "referencia_nb05": {
+        "aplicada": true,
+        "problema": "Subestimacion sistematica por crecimiento interanual no modelado",
+        "brecha_original_pct": 20.69,
+        "metodo": "Crecimiento interanual compuesto (CAGR)",
+        "g_mensual": 0.00631168,
+        "g_anual": 0.07842554,
+        "origen_temporal": "2022-01-01",
+        "estimado_con": "medias anuales 2022 y 2024 (solo train)",
+        "error_extrapolacion_test_pct": 2.3,
+        "via_de_aplicacion": "offset de exposicion (no como variable predictora)",
+        "justificacion": "Los modelos basados en arboles no extrapolan fuera del rango de entrenamiento. Incorporar la tendencia como variable no seria utilizable por Random Forest ni XGBoost."
+      }
+    },
+    "D3_variables_ex_post_prohibidas": {
+      "decision": "['fallecidos', 'lesionados'] prohibidas como predictoras en todo el notebook.",
+      "justificacion": "Se conocen despues del siniestro. No puede haber fallecidos donde no hubo siniestro: el predictor contendria la respuesta.",
+      "precedente": "Matriz B de NB04 (regla anti-fuga del clasificador de severidad).",
+      "verificacion": "verificar_predictoras() en cada conjunto de predictoras"
+    },
+    "D4_criterios_previos": {
+      "decision": "Umbrales de veredicto fijados antes de calcular; valores en el limite se reportan como indeterminados.",
+      "justificacion": "Con cuatro hipotesis, tres terciles y varios modelos, el espacio de comparaciones permite respaldar casi cualquier relato si el criterio se elige despues.",
+      "criterios": {
+        "H1_compresion": {
+          "regla": "proporcion de pares consecutivos distinguibles en tercil medio < la del tercil alto Y < 0.50",
+          "umbral_absoluto": 0.5,
+          "zona_indeterminada": 0.05
+        },
+        "H2_exposicion": {
+          "regla": "spearman(exposicion, observado) en medio <= min(alto, bajo) - 0.15",
+          "margen": 0.15,
+          "zona_indeterminada": 0.05
+        },
+        "H3_heterogeneidad": {
+          "regla": "spearman(efecto_distrito_2022, efecto_distrito_2023) en medio >= 0.50",
+          "umbral": 0.5,
+          "zona_indeterminada": 0.05
+        },
+        "H4_memorizacion": {
+          "regla": "spearman(baseline historico) >= spearman(RF Etapa 1) - 0.05 en tercil medio",
+          "margen": 0.05,
+          "zona_indeterminada": 0.02
+        },
+        "remedio_admisible": {
+          "regla": "la mejora del Spearman en tercil medio debe exceder el limite inferior del IC bootstrap de la diferencia, Y la calibracion no puede degradarse mas de 0.05 respecto del modelo vigente",
+          "degradacion_calibracion_maxima": 0.05
+        }
+      }
+    },
+    "D5_incertidumbre_obligatoria": {
+      "decision": "Toda comparacion entre modelos se acompana de IC bootstrap. Una diferencia menor que la incertidumbre se reporta como indistinguible del ruido.",
+      "justificacion": "El Spearman del tercil medio se calcula sobre 34 distritos; la incertidumbre del coeficiente es considerable.",
+      "precision_tecnica": "Los coeficientes comparados son pareados (mismos distritos, mismo ranking observado). El solapamiento de IC marginales es criterio poco fiable: se construye el IC de la DIFERENCIA remuestreando distritos y recalculando ambos coeficientes sobre cada remuestra.",
+      "remuestreos": 2000
+    }
+  },
+  "trazabilidad_particiones": {
+    "seccion_1": {
+      "ve": [
+        "ajuste",
+        "validacion_2024",
+        "train_completo",
+        "test"
+      ],
+      "decide": false,
+      "nota": "El test solo se usa para reproducir metricas ya publicadas."
+    },
+    "seccion_2": {
+      "ve": [
+        "validacion_2024",
+        "test"
+      ],
+      "decide": "validacion_2024"
+    },
+    "seccion_3": {
+      "ve": [
+        "ajuste",
+        "validacion_2024"
+      ],
+      "decide": "validacion_2024"
+    },
+    "seccion_4": {
+      "ve": [
+        "ajuste",
+        "validacion_2024"
+      ],
+      "decide": "validacion_2024"
+    },
+    "seccion_5": {
+      "ve": [
+        "train_completo"
+      ],
+      "decide": "pliegues internos"
+    },
+    "seccion_6": {
+      "ve": [
+        "test"
+      ],
+      "decide": false,
+      "nota": "Evaluacion unica. No elige nada."
+    }
+  },
+  "particiones": {
+    "ajuste": {
+      "mask": "MASK_AJUSTE",
+      "rango": "2022-01-01 a 2023-12-31",
+      "filas": 300760
+    },
+    "validacion_2024": {
+      "mask": "MASK_VALID",
+      "rango": "2024-01-01 a 2024-12-31",
+      "filas": 150792
+    },
+    "train_completo": {
+      "mask": "MASK_TRAIN",
+      "rango": "2022-01-01 a 2024-12-31",
+      "filas": 451552
+    },
+    "test": {
+      "mask": "MASK_TEST",
+      "rango": "2025-01-01 a 2026-06-30",
+      "filas": 224952
+    }
+  },
+  "protocolo_heredado": {
+    "split": {
+      "train": "2022-01-01 a 2024-12-31",
+      "test": "2025-01-01 a 2026-06-30",
+      "columna": "split"
+    },
+    "particion_interna": {
+      "proposito": "seleccion de hiperparametros sin usar el conjunto de prueba",
+      "ajuste": "2022-01-01 a 2023-12-31",
+      "validacion": "2024-01-01 a 2024-12-31",
+      "filas_ajuste": 300760,
+      "filas_validacion": 150792,
+      "nota": "La frontera train/test de NB03 no se altera."
+    },
+    "funcion_objetivo": {
+      "formula": "RMSE * (1 + lambda * |ln(calibracion)|)",
+      "lambda": 1.0,
+      "justificacion": "Simetria en escala logaritmica, penalizacion adimensional y dominancia de la calibracion sobre el RMSE, conforme a la jerarquia de NB05 Seccion 10.1.",
+      "metrica_excluida": "MAE: premia la subestimacion con 89.7% de ceros"
+    },
+    "jerarquia": [
+      "calibracion",
+      "RMSE",
+      "AIC",
+      "MAE (informativo)"
+    ],
+    "definicion_tercil_alto": "los 35 distritos con mayor total observado en el conjunto evaluado"
+  }
+}

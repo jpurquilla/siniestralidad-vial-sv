@@ -1,0 +1,831 @@
+{
+  "generado": "2026-09-15T10:09:21",
+  "particion_de_decision": "validacion_2024",
+  "gemelos": {
+    "motivo": "Los .pkl finales fueron entrenados con 2022-2024 e incluyen la particion de diagnostico. Se reinstancian los candidatos de la busqueda de NB07.",
+    "ajuste": "2022-01-01 a 2023-12-31",
+    "diagnostico": "2024-01-01 a 2024-12-31",
+    "xgb_reproduce_optuna": false,
+    "xgb_rmse_validacion": 0.38703234309438284,
+    "xgb_calibracion_validacion": 0.998928272109344,
+    "xgb_referencia_nb07": {
+      "ensayos": 40,
+      "mejor_objetivo": 0.3870219863321002,
+      "mejores_parametros": {
+        "max_depth": 3,
+        "eta": 0.14739737905025435,
+        "min_child_weight": 3.107307081040582,
+        "subsample": 0.9027973829209696,
+        "colsample_bytree": 0.8266402508612634,
+        "reg_lambda": 0.05447376552281462,
+        "reg_alpha": 0.15327711933776367,
+        "gamma": 0.0012798882323709277
+      },
+      "n_rondas": 338,
+      "rmse_validacion": 0.3869403211501104,
+      "calibracion_validacion": 0.9997889685818101
+    },
+    "rf_sin_referencia_publicada": true,
+    "hiperparametros_rf": {
+      "rf_e1": {
+        "n_estimators": 200,
+        "max_depth": null,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "max_features": 1.0,
+        "random_state": 42,
+        "n_jobs": -1
+      },
+      "rf_v2": {
+        "n_estimators": 200,
+        "max_depth": null,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "max_features": 1.0,
+        "random_state": 42,
+        "n_jobs": -1
+      }
+    }
+  },
+  "spearman_diagnostico": {
+    "XGB offset (NB07)": {
+      "global": 0.9779815764272158,
+      "bajo": 0.8273332988850727,
+      "medio": 0.7779306492114028,
+      "alto": 0.9654737750407922
+    },
+    "RF Etapa 1": {
+      "global": 0.9883221906651907,
+      "bajo": 0.9004052347437321,
+      "medio": 0.8016200894133216,
+      "alto": 0.9780796998563545
+    },
+    "RF NB05": {
+      "global": 0.9415395604510075,
+      "bajo": 0.7709242103247267,
+      "medio": 0.6889806221306491,
+      "alto": 0.9193921165483476
+    }
+  },
+  "spearman_test_descriptivo": {
+    "XGB offset (NB07)": {
+      "global": 0.9707768053038996,
+      "bajo": 0.8159242210252716,
+      "medio": 0.640831705270921,
+      "alto": 0.9775194365312184
+    },
+    "RF Etapa 1": {
+      "global": 0.9902992066505419,
+      "bajo": 0.8961565147203959,
+      "medio": 0.8684553715754061,
+      "alto": 0.9731773957614137
+    },
+    "RF NB05": {
+      "global": 0.9373388582435047,
+      "bajo": 0.7569343822322853,
+      "medio": 0.7143622516056808,
+      "alto": 0.9455844269984605
+    }
+  },
+  "estructura_terciles": {
+    "bajo": {
+      "n": 34,
+      "obs_min": 0,
+      "obs_max": 58,
+      "obs_mediana": 27.5,
+      "CV": 0.6105002073153823,
+      "rango": 58,
+      "rango_relativo": 2.109090909090909
+    },
+    "medio": {
+      "n": 34,
+      "obs_min": 58,
+      "obs_max": 154,
+      "obs_mediana": 95.5,
+      "CV": 0.2447788601126264,
+      "rango": 96,
+      "rango_relativo": 1.0052356020942408
+    },
+    "alto": {
+      "n": 35,
+      "obs_min": 159,
+      "obs_max": 2499,
+      "obs_mediana": 274.0,
+      "CV": 1.1213726273758968,
+      "rango": 2340,
+      "rango_relativo": 8.540145985401459
+    }
+  },
+  "techo_ruido": {
+    "estimador_A_semanas_alternas": {
+      "bajo": 0.9169643881650419,
+      "medio": 0.7536121654094377,
+      "alto": 0.9770007930376877,
+      "global": 0.9881241698335822
+    },
+    "estimador_B_poisson": {
+      "bajo": 0.9558955724003723,
+      "medio": 0.9118251071653722,
+      "alto": 0.9858504272811778,
+      "global": 0.9943288923103338
+    },
+    "alcanzado_por_tercil": {
+      "XGB offset (NB07)": {
+        "global": 0.9779815764272158,
+        "bajo": 0.8273332988850727,
+        "medio": 0.7779306492114028,
+        "alto": 0.9654737750407922
+      },
+      "RF Etapa 1": {
+        "global": 0.9883221906651907,
+        "bajo": 0.9004052347437321,
+        "medio": 0.8016200894133216,
+        "alto": 0.9780796998563545
+      },
+      "RF NB05": {
+        "global": 0.9415395604510075,
+        "bajo": 0.7709242103247267,
+        "medio": 0.6889806221306491,
+        "alto": 0.9193921165483476
+      }
+    },
+    "techo_A_test_descriptivo": {
+      "bajo": 0.9224745497259201,
+      "medio": 0.8362552296864945,
+      "alto": 0.9858234340945682,
+      "global": 0.9912927865285371
+    }
+  },
+  "techo_estructural": {
+    "bajo": {
+      "n": 34,
+      "exposicion_sola": 0.5099748494236146,
+      "poblacion_sola": 0.5099748494236146,
+      "multiplicador_solo": 0.7261332538255904,
+      "poisson_territorial": 0.7449362833457056,
+      "prediccion_completa": 0.8273332988850727,
+      "rango_multiplicador": 7.397525290235494,
+      "combinaciones_territoriales": 26
+    },
+    "medio": {
+      "n": 34,
+      "exposicion_sola": 0.3669570704826283,
+      "poblacion_sola": 0.3669570704826283,
+      "multiplicador_solo": 0.14718019944805125,
+      "poisson_territorial": 0.712822897430645,
+      "prediccion_completa": 0.7779306492114028,
+      "rango_multiplicador": 3.2395029589438105,
+      "combinaciones_territoriales": 34
+    },
+    "alto": {
+      "n": 35,
+      "exposicion_sola": 0.771062401218564,
+      "poblacion_sola": 0.771062401218564,
+      "multiplicador_solo": 0.35086490736648546,
+      "poisson_territorial": 0.8615449282280447,
+      "prediccion_completa": 0.9654737750407922,
+      "rango_multiplicador": 4.537950697157528,
+      "combinaciones_territoriales": 34
+    },
+    "global": {
+      "n": 103,
+      "exposicion_sola": 0.8654319806718825,
+      "poblacion_sola": 0.8654319806718825,
+      "multiplicador_solo": 0.6959678198807712,
+      "poisson_territorial": 0.934131441169527,
+      "prediccion_completa": 0.9779815764272158,
+      "rango_multiplicador": 13.320540875099665,
+      "combinaciones_territoriales": 94
+    }
+  },
+  "bootstrap": {
+    "diagnostico": [
+      {
+        "comparacion": "RF Etapa 1 - XGB offset (NB07)",
+        "tercil": "bajo",
+        "n": 34,
+        "spearman_A": 0.9004052347437321,
+        "spearman_B": 0.8273332988850727,
+        "diferencia": 0.07307193585865945,
+        "IC_inf": -0.013051830406948064,
+        "IC_sup": 0.1960779270140696,
+        "excluye_cero": false,
+        "amplitud_IC": 0.20912975742101766,
+        "prop_A_mayor": 0.951
+      },
+      {
+        "comparacion": "RF Etapa 1 - XGB offset (NB07)",
+        "tercil": "medio",
+        "n": 34,
+        "spearman_A": 0.8016200894133216,
+        "spearman_B": 0.7779306492114028,
+        "diferencia": 0.023689440201918877,
+        "IC_inf": -0.22262838397483536,
+        "IC_sup": 0.24974420561127791,
+        "excluye_cero": false,
+        "amplitud_IC": 0.4723725895861133,
+        "prop_A_mayor": 0.6035
+      },
+      {
+        "comparacion": "RF Etapa 1 - XGB offset (NB07)",
+        "tercil": "alto",
+        "n": 35,
+        "spearman_A": 0.9780796998563545,
+        "spearman_B": 0.9654737750407922,
+        "diferencia": 0.01260592481556222,
+        "IC_inf": -0.017966394214168895,
+        "IC_sup": 0.0626368181719383,
+        "excluye_cero": false,
+        "amplitud_IC": 0.08060321238610718,
+        "prop_A_mayor": 0.8075
+      },
+      {
+        "comparacion": "RF Etapa 1 - RF NB05",
+        "tercil": "bajo",
+        "n": 34,
+        "spearman_A": 0.9004052347437321,
+        "spearman_B": 0.7709242103247267,
+        "diferencia": 0.12948102441900544,
+        "IC_inf": 0.03650079515458459,
+        "IC_sup": 0.2839508977456839,
+        "excluye_cero": true,
+        "amplitud_IC": 0.24745010259109929,
+        "prop_A_mayor": 0.9965
+      },
+      {
+        "comparacion": "RF Etapa 1 - RF NB05",
+        "tercil": "medio",
+        "n": 34,
+        "spearman_A": 0.8016200894133216,
+        "spearman_B": 0.6889806221306491,
+        "diferencia": 0.11263946728267249,
+        "IC_inf": -0.051924888896296616,
+        "IC_sup": 0.306919218025545,
+        "excluye_cero": false,
+        "amplitud_IC": 0.3588441069218416,
+        "prop_A_mayor": 0.9
+      },
+      {
+        "comparacion": "RF Etapa 1 - RF NB05",
+        "tercil": "alto",
+        "n": 35,
+        "spearman_A": 0.9780796998563545,
+        "spearman_B": 0.9193921165483476,
+        "diferencia": 0.05868758330800683,
+        "IC_inf": 0.003644245867259025,
+        "IC_sup": 0.173459192048326,
+        "excluye_cero": true,
+        "amplitud_IC": 0.16981494618106696,
+        "prop_A_mayor": 0.983
+      },
+      {
+        "comparacion": "RF NB05 - XGB offset (NB07)",
+        "tercil": "bajo",
+        "n": 34,
+        "spearman_A": 0.7709242103247267,
+        "spearman_B": 0.8273332988850727,
+        "diferencia": -0.05640908856034599,
+        "IC_inf": -0.21255483345082465,
+        "IC_sup": 0.06425850389899075,
+        "excluye_cero": false,
+        "amplitud_IC": 0.2768133373498154,
+        "prop_A_mayor": 0.184
+      },
+      {
+        "comparacion": "RF NB05 - XGB offset (NB07)",
+        "tercil": "medio",
+        "n": 34,
+        "spearman_A": 0.6889806221306491,
+        "spearman_B": 0.7779306492114028,
+        "diferencia": -0.08895002708075361,
+        "IC_inf": -0.33462607079245726,
+        "IC_sup": 0.14553143514664818,
+        "excluye_cero": false,
+        "amplitud_IC": 0.48015750593910544,
+        "prop_A_mayor": 0.2205
+      },
+      {
+        "comparacion": "RF NB05 - XGB offset (NB07)",
+        "tercil": "alto",
+        "n": 35,
+        "spearman_A": 0.9193921165483476,
+        "spearman_B": 0.9654737750407922,
+        "diferencia": -0.04608165849244461,
+        "IC_inf": -0.14310800585813083,
+        "IC_sup": 0.006468842253283482,
+        "excluye_cero": false,
+        "amplitud_IC": 0.1495768481114143,
+        "prop_A_mayor": 0.0455
+      }
+    ],
+    "test_descriptivo": {
+      "bajo": {
+        "diferencia": 0.0802322936951243,
+        "IC_inf": -0.049408696324426085,
+        "IC_sup": 0.24540243884713095,
+        "excluye_cero": false
+      },
+      "medio": {
+        "diferencia": 0.22762366630448505,
+        "IC_inf": 0.05675534936007384,
+        "IC_sup": 0.4681267326124052,
+        "excluye_cero": true
+      },
+      "alto": {
+        "diferencia": -0.004342040769804711,
+        "IC_inf": -0.04650174470509953,
+        "IC_sup": 0.0295396169842614,
+        "excluye_cero": false
+      }
+    }
+  },
+  "robustez": {
+    "kendall": [
+      {
+        "modelo": "XGB offset (NB07)",
+        "tercil": "bajo",
+        "spearman": 0.8273332988850727,
+        "kendall_tau_b": 0.6601026947458254,
+        "ratio_tau_sp": 0.7978679156700088
+      },
+      {
+        "modelo": "XGB offset (NB07)",
+        "tercil": "medio",
+        "spearman": 0.7779306492114028,
+        "kendall_tau_b": 0.599288272184165,
+        "ratio_tau_sp": 0.7703620789226783
+      },
+      {
+        "modelo": "XGB offset (NB07)",
+        "tercil": "alto",
+        "spearman": 0.9654737750407922,
+        "kendall_tau_b": 0.8746849182706746,
+        "ratio_tau_sp": 0.9059644507006089
+      },
+      {
+        "modelo": "RF Etapa 1",
+        "tercil": "bajo",
+        "spearman": 0.9004052347437321,
+        "kendall_tau_b": 0.7641406194612002,
+        "ratio_tau_sp": 0.8486630130251133
+      },
+      {
+        "modelo": "RF Etapa 1",
+        "tercil": "medio",
+        "spearman": 0.8016200894133216,
+        "kendall_tau_b": 0.6458001977865182,
+        "ratio_tau_sp": 0.8056187791640268
+      },
+      {
+        "modelo": "RF Etapa 1",
+        "tercil": "alto",
+        "spearman": 0.9780796998563545,
+        "kendall_tau_b": 0.9083266458964698,
+        "ratio_tau_sp": 0.9286836706966427
+      },
+      {
+        "modelo": "RF NB05",
+        "tercil": "bajo",
+        "spearman": 0.7709242103247267,
+        "kendall_tau_b": 0.5919399164840282,
+        "ratio_tau_sp": 0.7678315307216682
+      },
+      {
+        "modelo": "RF NB05",
+        "tercil": "medio",
+        "spearman": 0.6889806221306491,
+        "kendall_tau_b": 0.4919530592556579,
+        "ratio_tau_sp": 0.7140303274920996
+      },
+      {
+        "modelo": "RF NB05",
+        "tercil": "alto",
+        "spearman": 0.9193921165483476,
+        "kendall_tau_b": 0.7905805992061867,
+        "ratio_tau_sp": 0.8598949077073285
+      }
+    ],
+    "peor_tercil_por_metrica": [
+      {
+        "modelo": "RF Etapa 1",
+        "peor_segun_spearman": "medio",
+        "peor_segun_kendall": "medio",
+        "coinciden": true
+      },
+      {
+        "modelo": "RF NB05",
+        "peor_segun_spearman": "medio",
+        "peor_segun_kendall": "medio",
+        "coinciden": true
+      },
+      {
+        "modelo": "XGB offset (NB07)",
+        "peor_segun_spearman": "medio",
+        "peor_segun_kendall": "medio",
+        "coinciden": true
+      }
+    ],
+    "sensibilidad_corte": [
+      {
+        "variante": "protocolo (35/34/34, conteo)",
+        "modelo": "XGB offset (NB07)",
+        "tercil": "bajo",
+        "n": 34,
+        "spearman": 0.8273332988850727,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "protocolo (35/34/34, conteo)",
+        "modelo": "XGB offset (NB07)",
+        "tercil": "medio",
+        "n": 34,
+        "spearman": 0.7779306492114028,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "protocolo (35/34/34, conteo)",
+        "modelo": "XGB offset (NB07)",
+        "tercil": "alto",
+        "n": 35,
+        "spearman": 0.9654737750407922,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "protocolo (35/34/34, conteo)",
+        "modelo": "RF Etapa 1",
+        "tercil": "bajo",
+        "n": 34,
+        "spearman": 0.9004052347437321,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "protocolo (35/34/34, conteo)",
+        "modelo": "RF Etapa 1",
+        "tercil": "medio",
+        "n": 34,
+        "spearman": 0.8016200894133216,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "protocolo (35/34/34, conteo)",
+        "modelo": "RF Etapa 1",
+        "tercil": "alto",
+        "n": 35,
+        "spearman": 0.9780796998563545,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "protocolo (35/34/34, conteo)",
+        "modelo": "RF NB05",
+        "tercil": "bajo",
+        "n": 34,
+        "spearman": 0.7709242103247267,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "protocolo (35/34/34, conteo)",
+        "modelo": "RF NB05",
+        "tercil": "medio",
+        "n": 34,
+        "spearman": 0.6889806221306491,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "protocolo (35/34/34, conteo)",
+        "modelo": "RF NB05",
+        "tercil": "alto",
+        "n": 35,
+        "spearman": 0.9193921165483476,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 30 (30/43/30, conteo)",
+        "modelo": "XGB offset (NB07)",
+        "tercil": "bajo",
+        "n": 30,
+        "spearman": 0.7723480025027414,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 30 (30/43/30, conteo)",
+        "modelo": "XGB offset (NB07)",
+        "tercil": "medio",
+        "n": 43,
+        "spearman": 0.8220678407508967,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 30 (30/43/30, conteo)",
+        "modelo": "XGB offset (NB07)",
+        "tercil": "alto",
+        "n": 30,
+        "spearman": 0.9617352614015572,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 30 (30/43/30, conteo)",
+        "modelo": "RF Etapa 1",
+        "tercil": "bajo",
+        "n": 30,
+        "spearman": 0.858510780527694,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 30 (30/43/30, conteo)",
+        "modelo": "RF Etapa 1",
+        "tercil": "medio",
+        "n": 43,
+        "spearman": 0.8993278684117298,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 30 (30/43/30, conteo)",
+        "modelo": "RF Etapa 1",
+        "tercil": "alto",
+        "n": 30,
+        "spearman": 0.9817575083426029,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 30 (30/43/30, conteo)",
+        "modelo": "RF NB05",
+        "tercil": "bajo",
+        "n": 30,
+        "spearman": 0.7362798628643891,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 30 (30/43/30, conteo)",
+        "modelo": "RF NB05",
+        "tercil": "medio",
+        "n": 43,
+        "spearman": 0.6870327190914937,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 30 (30/43/30, conteo)",
+        "modelo": "RF NB05",
+        "tercil": "alto",
+        "n": 30,
+        "spearman": 0.9052280311457174,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 40 (40/23/40, conteo)",
+        "modelo": "XGB offset (NB07)",
+        "tercil": "bajo",
+        "n": 40,
+        "spearman": 0.8625188295360999,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 40 (40/23/40, conteo)",
+        "modelo": "XGB offset (NB07)",
+        "tercil": "medio",
+        "n": 23,
+        "spearman": 0.5493202994092533,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 40 (40/23/40, conteo)",
+        "modelo": "XGB offset (NB07)",
+        "tercil": "alto",
+        "n": 40,
+        "spearman": 0.9628483014509783,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 40 (40/23/40, conteo)",
+        "modelo": "RF Etapa 1",
+        "tercil": "bajo",
+        "n": 40,
+        "spearman": 0.9355293451904452,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 40 (40/23/40, conteo)",
+        "modelo": "RF Etapa 1",
+        "tercil": "medio",
+        "n": 23,
+        "spearman": 0.6022251347258961,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 40 (40/23/40, conteo)",
+        "modelo": "RF Etapa 1",
+        "tercil": "alto",
+        "n": 40,
+        "spearman": 0.9827375969695994,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 40 (40/23/40, conteo)",
+        "modelo": "RF NB05",
+        "tercil": "bajo",
+        "n": 40,
+        "spearman": 0.8007695759364097,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 40 (40/23/40, conteo)",
+        "modelo": "RF NB05",
+        "tercil": "medio",
+        "n": 23,
+        "spearman": 0.6135972021304081,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "corte 40 (40/23/40, conteo)",
+        "modelo": "RF NB05",
+        "tercil": "alto",
+        "n": 40,
+        "spearman": 0.9426775536372826,
+        "misma_pregunta": true
+      },
+      {
+        "variante": "tasa per capita (35/34/34)",
+        "modelo": "XGB offset (NB07)",
+        "tercil": "bajo",
+        "n": 34,
+        "spearman": 0.9296248429475048,
+        "misma_pregunta": false
+      },
+      {
+        "variante": "tasa per capita (35/34/34)",
+        "modelo": "XGB offset (NB07)",
+        "tercil": "medio",
+        "n": 34,
+        "spearman": 0.9921307997478348,
+        "misma_pregunta": false
+      },
+      {
+        "variante": "tasa per capita (35/34/34)",
+        "modelo": "XGB offset (NB07)",
+        "tercil": "alto",
+        "n": 35,
+        "spearman": 0.991105822165769,
+        "misma_pregunta": false
+      },
+      {
+        "variante": "tasa per capita (35/34/34)",
+        "modelo": "RF Etapa 1",
+        "tercil": "bajo",
+        "n": 34,
+        "spearman": 0.9554520003465067,
+        "misma_pregunta": false
+      },
+      {
+        "variante": "tasa per capita (35/34/34)",
+        "modelo": "RF Etapa 1",
+        "tercil": "medio",
+        "n": 34,
+        "spearman": 0.9698219907592036,
+        "misma_pregunta": false
+      },
+      {
+        "variante": "tasa per capita (35/34/34)",
+        "modelo": "RF Etapa 1",
+        "tercil": "alto",
+        "n": 35,
+        "spearman": 0.996568389585846,
+        "misma_pregunta": false
+      },
+      {
+        "variante": "tasa per capita (35/34/34)",
+        "modelo": "RF NB05",
+        "tercil": "bajo",
+        "n": 34,
+        "spearman": 0.8828608774794895,
+        "misma_pregunta": false
+      },
+      {
+        "variante": "tasa per capita (35/34/34)",
+        "modelo": "RF NB05",
+        "tercil": "medio",
+        "n": 34,
+        "spearman": 0.9253571728435067,
+        "misma_pregunta": false
+      },
+      {
+        "variante": "tasa per capita (35/34/34)",
+        "modelo": "RF NB05",
+        "tercil": "alto",
+        "n": 35,
+        "spearman": 0.9813012139758872,
+        "misma_pregunta": false
+      }
+    ],
+    "ancho_tercil_medio": [
+      {
+        "variante": "protocolo (35/34/34, conteo)",
+        "n_medio": 34,
+        "obs_min": 58,
+        "obs_max": 154,
+        "rango_relativo": 1.0052356020942408
+      },
+      {
+        "variante": "corte 30 (30/43/30, conteo)",
+        "n_medio": 43,
+        "obs_min": 47,
+        "obs_max": 173,
+        "rango_relativo": 1.3125
+      },
+      {
+        "variante": "corte 40 (40/23/40, conteo)",
+        "n_medio": 23,
+        "obs_min": 76,
+        "obs_max": 124,
+        "rango_relativo": 0.5
+      },
+      {
+        "variante": "tasa per capita (35/34/34)",
+        "n_medio": 34,
+        "obs_min": 19,
+        "obs_max": 823,
+        "rango_relativo": 6.672199170124482
+      }
+    ],
+    "concordancia_conteo_vs_tasa": 0.5533980582524272
+  },
+  "criterio": {
+    "regla": "La caida se considera real si el IC 95% de la diferencia pareada (RF Etapa 1 - XGB offset) en el tercil medio EXCLUYE el cero, en la particion de diagnostico.",
+    "particion": "validacion_2024",
+    "comparacion": [
+      "RF Etapa 1",
+      "XGB offset (NB07)"
+    ],
+    "tercil": "medio",
+    "nivel": 0.95,
+    "remuestreos": 2000,
+    "matiz_1": "IC que contiene el cero -> la comparacion no sostiene la afirmacion.",
+    "matiz_2": "IC que excluye el cero con el vigente en el techo de ruido -> el problema esta en que Etapa 1 supera el ruido, no en que el vigente falle.",
+    "matiz_3": "Una diferencia distinguible puede ser irrelevante en magnitud. Se reporta el tamano junto al intervalo."
+  },
+  "veredicto": {
+    "veredicto": "no_es_real",
+    "caida_es_real": false,
+    "criterio_aplicado": "La caida se considera real si el IC 95% de la diferencia pareada (RF Etapa 1 - XGB offset) en el tercil medio EXCLUYE el cero, en la particion de diagnostico.",
+    "particion": "validacion_2024",
+    "modelos": "gemelos entrenados solo en 2022-2023",
+    "tercil_medio": {
+      "spearman_rf_e1": 0.8016200894133216,
+      "spearman_xgb_offset": 0.7779306492114028,
+      "diferencia_puntual": 0.023689440201918877,
+      "ic_diferencia": [
+        -0.22262838397483536,
+        0.24974420561127791
+      ],
+      "amplitud_ic": 0.4723725895861133,
+      "razon_amplitud_sobre_diferencia": 19.94021747917245
+    },
+    "restriccion_de_rango": {
+      "hallazgo": "El Spearman del tercil medio varia con el ancho del corte, no con el modelo.",
+      "amplitud_por_variante_de_corte": 0.35000756900247654,
+      "amplitud_entre_modelos_en_el_protocolo": 0.11263946728267249,
+      "spearman_medio_por_variante": {
+        "corte 30 (30/43/30, conteo)": {
+          "RF Etapa 1": 0.8993278684117298,
+          "RF NB05": 0.6870327190914937,
+          "XGB offset (NB07)": 0.8220678407508967
+        },
+        "corte 40 (40/23/40, conteo)": {
+          "RF Etapa 1": 0.6022251347258961,
+          "RF NB05": 0.6135972021304081,
+          "XGB offset (NB07)": 0.5493202994092533
+        },
+        "protocolo (35/34/34, conteo)": {
+          "RF Etapa 1": 0.8016200894133216,
+          "RF NB05": 0.6889806221306491,
+          "XGB offset (NB07)": 0.7779306492114028
+        }
+      },
+      "tasa_per_capita_xgb_medio": 0.9921307997478348
+    },
+    "techo_de_ruido": {
+      "estimador_A_semanas": 0.7536121654094377,
+      "estimador_B_poisson": 0.9118251071653722,
+      "excedido_por_el_vigente": true,
+      "interpretacion": "El estimador A subestima el techo en el tercil medio: dividir por semanas deja menos de 50 siniestros por mitad y la correccion de Spearman-Brown no se sostiene con conteos tan pequenos. La discrepancia entre ambos estimadores es en si misma evidencia de que este es el subgrupo mas ruidoso.",
+      "no_participa_del_criterio": true
+    },
+    "kendall_confirma_patron": true,
+    "comparaciones_con_ic_significativo": [
+      {
+        "comparacion": "RF Etapa 1 - RF NB05",
+        "tercil": "bajo",
+        "diferencia": 0.12948102441900544,
+        "IC_inf": 0.03650079515458459,
+        "IC_sup": 0.2839508977456839
+      },
+      {
+        "comparacion": "RF Etapa 1 - RF NB05",
+        "tercil": "alto",
+        "diferencia": 0.05868758330800683,
+        "IC_inf": 0.003644245867259025,
+        "IC_sup": 0.173459192048326
+      }
+    ]
+  },
+  "modo_seccion_3": "exploratorio",
+  "ejecutar_seccion_4": false
+}

@@ -31,8 +31,9 @@ statsmodels==0.14.2      # Poisson / Binomial Negativa + AIC
 # ============================================================
 # Modelos avanzados + optimización (Etapa 2)
 # ============================================================
-xgboost==2.1.1
-optuna==4.0.0            # búsqueda de hiperparámetros
+xgboost==2.1.1           # requiere OpenMP en el sistema: en macOS, `brew install libomp`
+                         # (sin él, `import xgboost` falla al cargar libxgboost.dylib)
+optuna==4.0.0            # búsqueda de hiperparámetros (NB07; estudios en SQLite)
 
 # ============================================================
 # Interpretabilidad (NB04 + Etapa 2)

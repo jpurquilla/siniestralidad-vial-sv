@@ -1,0 +1,236 @@
+{
+  "modo": "exploratorio",
+  "encuadre": "caracterizacion descriptiva, no diagnostico",
+  "hipotesis_retiradas": {
+    "H4_memorizacion": {
+      "motivo": "Presuponia una asimetria entre modelos que la Seccion 2 descarto: la diferencia es +0.023689 con IC [-0.2226, +0.2497].",
+      "consecuencia": "Investigar por que un modelo supera a otro, sin haber demostrado que lo supere, seria explicar un hecho inexistente."
+    },
+    "H3_heterogeneidad": {
+      "motivo": "Su proposito era decidir si un remedio estaba justificado. Sin problema que remediar, la decision no se plantea.",
+      "consecuencia": "Se conserva como MEDICION descriptiva en 3.3, sin veredicto. Alimenta las limitaciones de la Seccion 5."
+    }
+  },
+  "hipotesis_conservadas": {
+    "H1_resolucion": {
+      "celda": "3.2",
+      "pregunta": "Estan las predicciones del rango medio lo bastante separadas entre si como para sostener un orden?"
+    },
+    "H2_origen_del_orden": {
+      "celda": "3.3",
+      "pregunta": "De donde viene el ordenamiento entre distritos: de la exposicion o de las ocho variables?",
+      "evidencia_previa": "Celda 2.3: multiplicador_solo = 0.1472 en el tercil medio, contra 0.7261 (bajo) y 0.3509 (alto)."
+    }
+  },
+  "resolucion": {
+    "tabla": [
+      {
+        "modelo": "XGB offset (NB07)",
+        "tercil": "bajo",
+        "n": 34,
+        "pares_distinguibles": 0.030303030303030304,
+        "separacion_rel_mediana": 0.20790295808125173,
+        "CV_predicho": 0.7062995433807373,
+        "CV_observado": 0.6105002073153823,
+        "CV_pred/CV_obs": 1.1569194161073648,
+        "rango_predicho": 101.80604553222656,
+        "rango_observado": 58.0
+      },
+      {
+        "modelo": "XGB offset (NB07)",
+        "tercil": "medio",
+        "n": 34,
+        "pares_distinguibles": 0.06060606060606061,
+        "separacion_rel_mediana": 0.16848379128294919,
+        "CV_predicho": 0.2718361020088196,
+        "CV_observado": 0.2447788601126264,
+        "CV_pred/CV_obs": 1.1105374944704938,
+        "rango_predicho": 123.96434783935547,
+        "rango_observado": 96.0
+      },
+      {
+        "modelo": "XGB offset (NB07)",
+        "tercil": "alto",
+        "n": 35,
+        "pares_distinguibles": 0.35294117647058826,
+        "separacion_rel_mediana": 0.36774206989913605,
+        "CV_predicho": 1.0964452028274536,
+        "CV_observado": 1.1213726273758968,
+        "CV_pred/CV_obs": 0.9777706143882116,
+        "rango_predicho": 2368.876220703125,
+        "rango_observado": 2340.0
+      },
+      {
+        "modelo": "RF Etapa 1",
+        "tercil": "bajo",
+        "n": 34,
+        "pares_distinguibles": 0.0,
+        "separacion_rel_mediana": 0.13363122775935257,
+        "CV_predicho": 0.5799916647434156,
+        "CV_observado": 0.6105002073153823,
+        "CV_pred/CV_obs": 0.9500269742640625,
+        "rango_predicho": 49.758026090654134,
+        "rango_observado": 58.0
+      },
+      {
+        "modelo": "RF Etapa 1",
+        "tercil": "medio",
+        "n": 34,
+        "pares_distinguibles": 0.0,
+        "separacion_rel_mediana": 0.14279249239280575,
+        "CV_predicho": 0.25016519896743006,
+        "CV_observado": 0.2447788601126264,
+        "CV_pred/CV_obs": 1.0220049184489435,
+        "rango_predicho": 83.7417417327955,
+        "rango_observado": 96.0
+      },
+      {
+        "modelo": "RF Etapa 1",
+        "tercil": "alto",
+        "n": 35,
+        "pares_distinguibles": 0.20588235294117646,
+        "separacion_rel_mediana": 0.43035066625902474,
+        "CV_predicho": 1.1158025011763255,
+        "CV_observado": 1.1213726273758968,
+        "CV_pred/CV_obs": 0.99503276068669,
+        "rango_predicho": 2070.003229689229,
+        "rango_observado": 2340.0
+      },
+      {
+        "modelo": "RF NB05",
+        "tercil": "bajo",
+        "n": 34,
+        "pares_distinguibles": 0.09090909090909091,
+        "separacion_rel_mediana": 0.31452253758150794,
+        "CV_predicho": 1.0490330333265856,
+        "CV_observado": 0.6105002073153823,
+        "CV_pred/CV_obs": 1.7183172433955598,
+        "rango_predicho": 207.76236736078184,
+        "rango_observado": 58.0
+      },
+      {
+        "modelo": "RF NB05",
+        "tercil": "medio",
+        "n": 34,
+        "pares_distinguibles": 0.030303030303030304,
+        "separacion_rel_mediana": 0.16393384863365854,
+        "CV_predicho": 0.3765457974779963,
+        "CV_observado": 0.2447788601126264,
+        "CV_pred/CV_obs": 1.5383101192020503,
+        "rango_predicho": 211.51246708119766,
+        "rango_observado": 96.0
+      },
+      {
+        "modelo": "RF NB05",
+        "tercil": "alto",
+        "n": 35,
+        "pares_distinguibles": 0.2647058823529412,
+        "separacion_rel_mediana": 0.44370382703438266,
+        "CV_predicho": 1.099133218081626,
+        "CV_observado": 1.1213726273758968,
+        "CV_pred/CV_obs": 0.980167690247342,
+        "rango_predicho": 2186.398276007048,
+        "rango_observado": 2340.0
+      }
+    ],
+    "variacion_entre_modelos_tercil_medio": 0.06060606060606061,
+    "variacion_entre_terciles_modelo_vigente": 0.3226381461675579,
+    "nota": "Regla exigente (una desviacion Poisson completa). Sirve para comparar terciles entre si, no como umbral absoluto de calidad."
+  },
+  "grados_de_libertad": {
+    "bajo": {
+      "n_distritos": 34,
+      "valores_pct_urbano": 20,
+      "valores_poblacion_baja": 2,
+      "estaciones": 4,
+      "combinaciones_territoriales": 26,
+      "distritos_por_combinacion": 1.3076923076923077,
+      "exposicion_sola": 0.5099748494236146,
+      "multiplicador_solo": 0.7261332538255904,
+      "prediccion_completa": 0.8273332988850727,
+      "rango_multiplicador": 7.397525290235494
+    },
+    "medio": {
+      "n_distritos": 34,
+      "valores_pct_urbano": 33,
+      "valores_poblacion_baja": 2,
+      "estaciones": 5,
+      "combinaciones_territoriales": 34,
+      "distritos_por_combinacion": 1.0,
+      "exposicion_sola": 0.3669570704826283,
+      "multiplicador_solo": 0.14718019944805125,
+      "prediccion_completa": 0.7779306492114028,
+      "rango_multiplicador": 3.2395029589438105
+    },
+    "alto": {
+      "n_distritos": 35,
+      "valores_pct_urbano": 34,
+      "valores_poblacion_baja": 1,
+      "estaciones": 5,
+      "combinaciones_territoriales": 34,
+      "distritos_por_combinacion": 1.0294117647058822,
+      "exposicion_sola": 0.771062401218564,
+      "multiplicador_solo": 0.35086490736648546,
+      "prediccion_completa": 0.9654737750407922,
+      "rango_multiplicador": 4.537950697157528
+    },
+    "global": {
+      "n_distritos": 103,
+      "valores_pct_urbano": 86,
+      "valores_poblacion_baja": 2,
+      "estaciones": 5,
+      "combinaciones_territoriales": 94,
+      "distritos_por_combinacion": 1.0957446808510638,
+      "exposicion_sola": 0.8654319806718825,
+      "multiplicador_solo": 0.6959678198807712,
+      "prediccion_completa": 0.9779815764272158,
+      "rango_multiplicador": 13.320540875099665
+    }
+  },
+  "efecto_distrito": {
+    "estabilidad": {
+      "bajo": {
+        "n": 34,
+        "estabilidad_spearman": 0.5193277310924369,
+        "estabilidad_pearson": 0.6102272447891183,
+        "sd_2022": 0.47728579838794544,
+        "sd_2023": 0.4088474974941054,
+        "ratio_mediano_2022": 0.8603183266365261,
+        "ratio_mediano_2023": 0.9651248515197332
+      },
+      "medio": {
+        "n": 34,
+        "estabilidad_spearman": 0.655920550038197,
+        "estabilidad_pearson": 0.747635382798029,
+        "sd_2022": 0.17540525906078303,
+        "sd_2023": 0.16817100074332503,
+        "ratio_mediano_2022": 1.0285760140991278,
+        "ratio_mediano_2023": 1.0021383864805908
+      },
+      "alto": {
+        "n": 35,
+        "estabilidad_spearman": 0.5868347338935574,
+        "estabilidad_pearson": 0.6279468761224934,
+        "sd_2022": 0.09096585737971301,
+        "sd_2023": 0.09563697177054109,
+        "ratio_mediano_2022": 0.9923926999168814,
+        "ratio_mediano_2023": 1.0161020453908598
+      },
+      "global": {
+        "n": 103,
+        "estabilidad_spearman": 0.5703554013091421,
+        "estabilidad_pearson": 0.6615781382023409,
+        "sd_2022": 0.3245778250099251,
+        "sd_2023": 0.2677113847907098,
+        "ratio_mediano_2022": 0.9923926999168814,
+        "ratio_mediano_2023": 1.0132513531571279
+      }
+    },
+    "anios_comparados": [
+      2022,
+      2023
+    ],
+    "prop_coherentes": 0.6893203883495146,
+    "limitacion": "El gemelo fue entrenado sobre los anios en que se mide el efecto. La estabilidad reportada es una cota inferior."
+  }
+}

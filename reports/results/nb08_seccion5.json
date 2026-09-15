@@ -1,0 +1,717 @@
+{
+  "validacion_cruzada": {
+    "diseno": "pliegues expansivos dentro de train; el test no participa",
+    "pliegues": [
+      {
+        "id": 1,
+        "train_fin": "2022-12-31",
+        "val_ini": "2023-01-01",
+        "val_fin": "2023-06-30"
+      },
+      {
+        "id": 2,
+        "train_fin": "2023-06-30",
+        "val_ini": "2023-07-01",
+        "val_fin": "2023-12-31"
+      },
+      {
+        "id": 3,
+        "train_fin": "2023-12-31",
+        "val_ini": "2024-01-01",
+        "val_fin": "2024-06-30"
+      },
+      {
+        "id": 4,
+        "train_fin": "2024-06-30",
+        "val_ini": "2024-07-01",
+        "val_fin": "2024-12-31"
+      }
+    ],
+    "factor_reestimado_por_pliegue": {
+      "1": {
+        "train_hasta": "2022-12-31",
+        "g_mensual": 0.012213196859612419,
+        "g_anual": 0.15681508212527184,
+        "meses_usados": 12,
+        "media_primer_mes": 0.10303789539617914,
+        "media_ultimo_mes": 0.11775759473849044,
+        "desvio_vs_global_pct": 93.5015219341351
+      },
+      "2": {
+        "train_hasta": "2023-06-30",
+        "g_mensual": 0.01828558261113855,
+        "g_anual": 0.2428969957506657,
+        "meses_usados": 18,
+        "media_primer_mes": 0.10303789539617914,
+        "media_ultimo_mes": 0.14021035598705503,
+        "desvio_vs_global_pct": 189.71022946566606
+      },
+      "3": {
+        "train_hasta": "2023-12-31",
+        "g_mensual": 0.007422585231812828,
+        "g_anual": 0.09279876628218475,
+        "meses_usados": 24,
+        "media_primer_mes": 0.10303789539617914,
+        "media_ultimo_mes": 0.12214218603194488,
+        "desvio_vs_global_pct": 17.600785081195937
+      },
+      "4": {
+        "train_hasta": "2024-06-30",
+        "g_mensual": 0.012521478751939652,
+        "g_anual": 0.1610500373370649,
+        "meses_usados": 30,
+        "media_primer_mes": 0.10303789539617914,
+        "media_ultimo_mes": 0.14781553398058253,
+        "desvio_vs_global_pct": 98.38582995240017
+      }
+    },
+    "factor_global_nb05": 0.00631168,
+    "resultados": [
+      {
+        "pliegue": 1,
+        "variante": "factor reestimado (D2)",
+        "calibracion": 1.0159209229563166,
+        "RMSE": 0.3632129531460508,
+        "MAE": 0.17081212826835593,
+        "spearman_global": 0.964957623403829,
+        "media_observada": 0.11846269377246152,
+        "media_predicha": 0.1203487291932106
+      },
+      {
+        "pliegue": 1,
+        "variante": "factor global (con fuga)",
+        "calibracion": 0.9624792858637753,
+        "RMSE": 0.3634233316279542,
+        "MAE": 0.16763236924304048,
+        "spearman_global": 0.9657814393817832,
+        "media_observada": 0.11846269377246152,
+        "media_predicha": 0.11401788890361786
+      },
+      {
+        "pliegue": 2,
+        "variante": "factor reestimado (D2)",
+        "calibracion": 1.1836091906794852,
+        "RMSE": 0.3771368459028667,
+        "MAE": 0.1900506929016715,
+        "spearman_global": 0.9720360320593796,
+        "media_observada": 0.12701825664837485,
+        "media_predicha": 0.1503399759531021
+      },
+      {
+        "pliegue": 2,
+        "variante": "factor global (con fuga)",
+        "calibracion": 1.043025093690692,
+        "RMSE": 0.37425188957528693,
+        "MAE": 0.1805419097404516,
+        "spearman_global": 0.9710748817412097,
+        "media_observada": 0.12701825664837485,
+        "media_predicha": 0.13248322904109955
+      },
+      {
+        "pliegue": 3,
+        "variante": "factor reestimado (D2)",
+        "calibracion": 1.0239714338257677,
+        "RMSE": 0.37897607260527716,
+        "MAE": 0.18249210269073446,
+        "spearman_global": 0.9664383889234226,
+        "media_observada": 0.12906753440734023,
+        "media_predicha": 0.1321614682674408
+      },
+      {
+        "pliegue": 3,
+        "variante": "factor global (con fuga)",
+        "calibracion": 0.9999909238964104,
+        "RMSE": 0.37853129040378003,
+        "MAE": 0.18086185314197534,
+        "spearman_global": 0.9657134447997104,
+        "media_observada": 0.12906753440734023,
+        "media_predicha": 0.1290663629770279
+      },
+      {
+        "pliegue": 4,
+        "variante": "factor reestimado (D2)",
+        "calibracion": 1.1084413206151995,
+        "RMSE": 0.3950649403014267,
+        "MAE": 0.19896964050074162,
+        "spearman_global": 0.9783471427643774,
+        "media_observada": 0.1401303292528493,
+        "media_predicha": 0.155326247215271
+      },
+      {
+        "pliegue": 4,
+        "variante": "factor global (con fuga)",
+        "calibracion": 0.9909693403207211,
+        "RMSE": 0.3947004229252774,
+        "MAE": 0.19110841163478415,
+        "spearman_global": 0.9772761702275987,
+        "media_observada": 0.1401303292528493,
+        "media_predicha": 0.13886485993862152
+      }
+    ],
+    "estabilidad": {
+      "factor global (con fuga)": {
+        "calibracion_media": 0.9991161609428998,
+        "calibracion_sd": 0.03335361493195955,
+        "calibracion_min": 0.9624792858637753,
+        "calibracion_max": 1.043025093690692,
+        "RMSE_medio": 0.37772673363307463,
+        "RMSE_sd": 0.012979667303537385,
+        "spearman_medio": 0.9699614840375755,
+        "spearman_sd": 0.0054852195093066025
+      },
+      "factor reestimado (D2)": {
+        "calibracion_media": 1.0829857170191923,
+        "calibracion_sd": 0.07906420055758559,
+        "calibracion_min": 1.0159209229563166,
+        "calibracion_max": 1.1836091906794852,
+        "RMSE_medio": 0.3785977029889053,
+        "RMSE_sd": 0.013040164868928767,
+        "spearman_medio": 0.9704447967877521,
+        "spearman_sd": 0.006086582986223439
+      }
+    },
+    "optimismo_por_fuga": -0.060589331116746,
+    "decision": "D2 — el factor se reestima en cada pliegue para evitar fuga temporal"
+  },
+  "sesgos": {
+    "ejes_evaluados": [
+      "calendario: habil / finde",
+      "clima: seca / lluviosa",
+      "poblacion: resto / baja",
+      "territorio: rural / urbano (pct>0.3)",
+      "territorio: rural / urbano (pct>0.5)",
+      "territorio: rural / urbano (pct>0.7)"
+    ],
+    "umbrales_urbano": [
+      0.3,
+      0.5,
+      0.7
+    ],
+    "diagnostico": [
+      {
+        "particion": "validacion_2024",
+        "eje": "clima: seca / lluviosa",
+        "grupo": "seca",
+        "n_celdas": 74984,
+        "n_distritos": 103,
+        "media_observada": 0.12411981222660834,
+        "media_predicha": 0.12766616896858565,
+        "calibracion": 1.0285720440464625,
+        "RMSE": 0.3704142329784866,
+        "RMSE_relativo": 2.984328016080245,
+        "spearman": 0.9681109650237164
+      },
+      {
+        "particion": "validacion_2024",
+        "eje": "clima: seca / lluviosa",
+        "grupo": "lluviosa",
+        "n_celdas": 75808,
+        "n_distritos": 103,
+        "media_observada": 0.14502427184466019,
+        "media_predicha": 0.1412294129161285,
+        "calibracion": 0.9738329392710452,
+        "RMSE": 0.4027959115957584,
+        "RMSE_relativo": 2.777437917614267,
+        "spearman": 0.9752991250560845
+      },
+      {
+        "particion": "validacion_2024",
+        "eje": "calendario: habil / finde",
+        "grupo": "habil",
+        "n_celdas": 107944,
+        "n_distritos": 103,
+        "media_observada": 0.12963203142370117,
+        "media_predicha": 0.1296814082128084,
+        "calibracion": 1.0003808996014716,
+        "RMSE": 0.37907876493273274,
+        "RMSE_relativo": 2.9242677197097766,
+        "spearman": 0.9721732565098802
+      },
+      {
+        "particion": "validacion_2024",
+        "eje": "calendario: habil / finde",
+        "grupo": "finde",
+        "n_celdas": 42848,
+        "n_distritos": 103,
+        "media_observada": 0.14721807318894697,
+        "media_predicha": 0.14658582477975413,
+        "calibracion": 0.9957053614716083,
+        "RMSE": 0.4063797797202078,
+        "RMSE_relativo": 2.7603932786067635,
+        "spearman": 0.9714533820357086
+      },
+      {
+        "particion": "validacion_2024",
+        "eje": "poblacion: resto / baja",
+        "grupo": "resto",
+        "n_celdas": 133224,
+        "n_distritos": 91,
+        "media_observada": 0.15048339638503572,
+        "media_predicha": 0.15054979516081532,
+        "calibracion": 1.000441236557485,
+        "RMSE": 0.40943557362900135,
+        "RMSE_relativo": 2.7208023174955147,
+        "spearman": 0.9740794424257433
+      },
+      {
+        "particion": "validacion_2024",
+        "eje": "poblacion: resto / baja",
+        "grupo": "poblacion baja",
+        "n_celdas": 17568,
+        "n_distritos": 12,
+        "media_observada": 0.014401183970856102,
+        "media_predicha": 0.012659007159712935,
+        "calibracion": 0.8790254457780112,
+        "RMSE": 0.12033774317915755,
+        "RMSE_relativo": 8.356100680519525,
+        "spearman": 0.965034965034965
+      },
+      {
+        "particion": "validacion_2024",
+        "eje": "territorio: rural / urbano (pct>0.3)",
+        "grupo": "rural (pct<=0.3)",
+        "n_celdas": 27816,
+        "n_distritos": 19,
+        "media_observada": 0.01272648835202761,
+        "media_predicha": 0.010897771130225024,
+        "calibracion": 0.8563062196563257,
+        "RMSE": 0.11250761033862215,
+        "RMSE_relativo": 8.840428500505972,
+        "spearman": 0.9223344459653743
+      },
+      {
+        "particion": "validacion_2024",
+        "eje": "territorio: rural / urbano (pct>0.3)",
+        "grupo": "urbano (pct>0.3)",
+        "n_celdas": 122976,
+        "n_distritos": 84,
+        "media_observada": 0.16220238095238096,
+        "media_predicha": 0.1624390689771009,
+        "calibracion": 1.001459214244145,
+        "RMSE": 0.4252210108623367,
+        "RMSE_relativo": 2.6215460486191766,
+        "spearman": 0.968633248394025
+      },
+      {
+        "particion": "validacion_2024",
+        "eje": "territorio: rural / urbano (pct>0.5)",
+        "grupo": "rural (pct<=0.5)",
+        "n_celdas": 45384,
+        "n_distritos": 31,
+        "media_observada": 0.026881720430107527,
+        "media_predicha": 0.0269297711934336,
+        "calibracion": 1.0017874883957298,
+        "RMSE": 0.16470671928338687,
+        "RMSE_relativo": 6.127089957341991,
+        "spearman": 0.9222547563263188
+      },
+      {
+        "particion": "validacion_2024",
+        "eje": "territorio: rural / urbano (pct>0.5)",
+        "grupo": "urbano (pct>0.5)",
+        "n_celdas": 105408,
+        "n_distritos": 72,
+        "media_observada": 0.18102041590771098,
+        "media_predicha": 0.18079328525769872,
+        "calibracion": 0.9987452760569943,
+        "RMSE": 0.4501204801560571,
+        "RMSE_relativo": 2.4865730083480777,
+        "spearman": 0.9654301942317318
+      },
+      {
+        "particion": "validacion_2024",
+        "eje": "territorio: rural / urbano (pct>0.7)",
+        "grupo": "rural (pct<=0.7)",
+        "n_celdas": 81984,
+        "n_distritos": 56,
+        "media_observada": 0.04996096799375488,
+        "media_predicha": 0.049802374638558466,
+        "calibracion": 0.9968256548748968,
+        "RMSE": 0.2261598604547953,
+        "RMSE_relativo": 4.526730956915512,
+        "spearman": 0.9728612007258143
+      },
+      {
+        "particion": "validacion_2024",
+        "eje": "territorio: rural / urbano (pct>0.7)",
+        "grupo": "urbano (pct>0.7)",
+        "n_celdas": 68808,
+        "n_distritos": 47,
+        "media_observada": 0.23551040576677132,
+        "media_predicha": 0.23538311629343564,
+        "calibracion": 0.9994595165639444,
+        "RMSE": 0.5170390689584746,
+        "RMSE_relativo": 2.19539797944429,
+        "spearman": 0.971929114915697
+      }
+    ],
+    "test_descriptivo": [
+      {
+        "particion": "test",
+        "eje": "clima: seca / lluviosa",
+        "grupo": "seca",
+        "n_celdas": 124012,
+        "n_distritos": 103,
+        "media_observada": 0.14017998258233075,
+        "media_predicha": 0.13587495822882073,
+        "calibracion": 0.9692893074017784,
+        "RMSE": 0.3966502688179702,
+        "RMSE_relativo": 2.8295785283395145,
+        "spearman": 0.9641878454805284
+      },
+      {
+        "particion": "test",
+        "eje": "clima: seca / lluviosa",
+        "grupo": "lluviosa",
+        "n_celdas": 100940,
+        "n_distritos": 103,
+        "media_observada": 0.16237368733901328,
+        "media_predicha": 0.15661407753746118,
+        "calibracion": 0.9645286752063045,
+        "RMSE": 0.43022679826698723,
+        "RMSE_relativo": 2.649609091950561,
+        "spearman": 0.9698535663643895
+      },
+      {
+        "particion": "test",
+        "eje": "calendario: habil / finde",
+        "grupo": "habil",
+        "n_celdas": 160680,
+        "n_distritos": 103,
+        "media_observada": 0.14529499626587006,
+        "media_predicha": 0.13986106929544023,
+        "calibracion": 0.9626007287925699,
+        "RMSE": 0.4046613207795985,
+        "RMSE_relativo": 2.785101560133037,
+        "spearman": 0.9716987621306385
+      },
+      {
+        "particion": "test",
+        "eje": "calendario: habil / finde",
+        "grupo": "finde",
+        "n_celdas": 64272,
+        "n_distritos": 103,
+        "media_observada": 0.16224794622852876,
+        "media_predicha": 0.15848073332263676,
+        "calibracion": 0.9767811365662169,
+        "RMSE": 0.42998401274774223,
+        "RMSE_relativo": 2.650166136106913,
+        "spearman": 0.9600421880687022
+      },
+      {
+        "particion": "test",
+        "eje": "poblacion: resto / baja",
+        "grupo": "resto",
+        "n_celdas": 198744,
+        "n_distritos": 91,
+        "media_observada": 0.16779877631525983,
+        "media_predicha": 0.1624127013699685,
+        "calibracion": 0.9679015838877633,
+        "RMSE": 0.4359454412316009,
+        "RMSE_relativo": 2.5980251513428674,
+        "spearman": 0.9643438764729445
+      },
+      {
+        "particion": "test",
+        "eje": "poblacion: resto / baja",
+        "grupo": "poblacion baja",
+        "n_celdas": 26208,
+        "n_distritos": 12,
+        "media_observada": 0.016216422466422468,
+        "media_predicha": 0.014507035463630484,
+        "calibracion": 0.8945891421901828,
+        "RMSE": 0.12711886648644075,
+        "RMSE_relativo": 7.838897065592091,
+        "spearman": 0.9230769230769231
+      },
+      {
+        "particion": "test",
+        "eje": "territorio: rural / urbano (pct>0.3)",
+        "grupo": "rural (pct<=0.3)",
+        "n_celdas": 41496,
+        "n_distritos": 19,
+        "media_observada": 0.014435126277231541,
+        "media_predicha": 0.012648522523704917,
+        "calibracion": 0.8762322047473442,
+        "RMSE": 0.11962661108530753,
+        "RMSE_relativo": 8.287188403332088,
+        "spearman": 0.8070175438596491
+      },
+      {
+        "particion": "test",
+        "eje": "territorio: rural / urbano (pct>0.3)",
+        "grupo": "urbano (pct>0.3)",
+        "n_celdas": 183456,
+        "n_distritos": 84,
+        "media_observada": 0.18083355136926565,
+        "media_predicha": 0.17515855145571793,
+        "calibracion": 0.9686175498375339,
+        "RMSE": 0.45272215544483946,
+        "RMSE_relativo": 2.503529638260391,
+        "spearman": 0.9570398728056193
+      },
+      {
+        "particion": "test",
+        "eje": "territorio: rural / urbano (pct>0.5)",
+        "grupo": "rural (pct<=0.5)",
+        "n_celdas": 67704,
+        "n_distritos": 31,
+        "media_observada": 0.030278860924022214,
+        "media_predicha": 0.029122760256071845,
+        "calibracion": 0.9618182245741894,
+        "RMSE": 0.17434583600745066,
+        "RMSE_relativo": 5.758005112706556,
+        "spearman": 0.9221617449039323
+      },
+      {
+        "particion": "test",
+        "eje": "territorio: rural / urbano (pct>0.5)",
+        "grupo": "urbano (pct>0.5)",
+        "n_celdas": 157248,
+        "n_distritos": 72,
+        "media_observada": 0.20174501424501423,
+        "media_predicha": 0.19515048169850654,
+        "calibracion": 0.9673125377041596,
+        "RMSE": 0.47938077552018876,
+        "RMSE_relativo": 2.376171611051527,
+        "spearman": 0.9528648499904017
+      },
+      {
+        "particion": "test",
+        "eje": "territorio: rural / urbano (pct>0.7)",
+        "grupo": "rural (pct<=0.7)",
+        "n_celdas": 122304,
+        "n_distritos": 56,
+        "media_observada": 0.05652309000523286,
+        "media_predicha": 0.0534024628593745,
+        "calibracion": 0.944790223861267,
+        "RMSE": 0.24041091677283022,
+        "RMSE_relativo": 4.25332225733896,
+        "spearman": 0.9674111809285274
+      },
+      {
+        "particion": "test",
+        "eje": "territorio: rural / urbano (pct>0.7)",
+        "grupo": "urbano (pct>0.7)",
+        "n_celdas": 102648,
+        "n_distritos": 47,
+        "media_observada": 0.26168069519133347,
+        "media_predicha": 0.2545340921299091,
+        "calibracion": 0.9726896053367674,
+        "RMSE": 0.5506603868912734,
+        "RMSE_relativo": 2.1043217822722697,
+        "spearman": 0.9682007400555043
+      }
+    ],
+    "brechas_diagnostico": {
+      "calendario: habil / finde": {
+        "grupo_A": "habil",
+        "grupo_B": "finde",
+        "calib_A": 1.0003808996014716,
+        "calib_B": 0.9957053614716083,
+        "brecha_calibracion": -0.004675538129863321,
+        "brecha_RMSE_relativo": -0.16387444110301308,
+        "brecha_spearman": -0.0007198744741715446,
+        "razon_medias_obs": 1.1356612372120127
+      },
+      "clima: seca / lluviosa": {
+        "grupo_A": "seca",
+        "grupo_B": "lluviosa",
+        "calib_A": 1.0285720440464625,
+        "calib_B": 0.9738329392710452,
+        "brecha_calibracion": -0.054739104775417324,
+        "brecha_RMSE_relativo": -0.2068900984659776,
+        "brecha_spearman": 0.007188160032368107,
+        "razon_medias_obs": 1.1684216181368863
+      },
+      "poblacion: resto / baja": {
+        "grupo_A": "resto",
+        "grupo_B": "poblacion baja",
+        "calib_A": 1.000441236557485,
+        "calib_B": 0.8790254457780112,
+        "brecha_calibracion": -0.12141579077947384,
+        "brecha_RMSE_relativo": 5.63529836302401,
+        "brecha_spearman": -0.009044477390778294,
+        "razon_medias_obs": 0.09569948789571696
+      },
+      "territorio: rural / urbano (pct>0.3)": {
+        "grupo_A": "rural (pct<=0.3)",
+        "grupo_B": "urbano (pct>0.3)",
+        "calib_A": 0.8563062196563257,
+        "calib_B": 1.001459214244145,
+        "brecha_calibracion": 0.14515299458781927,
+        "brecha_RMSE_relativo": -6.218882451886795,
+        "brecha_spearman": 0.0462988024286507,
+        "razon_medias_obs": 12.745258272800646
+      },
+      "territorio: rural / urbano (pct>0.5)": {
+        "grupo_A": "rural (pct<=0.5)",
+        "grupo_B": "urbano (pct>0.5)",
+        "calib_A": 1.0017874883957298,
+        "calib_B": 0.9987452760569943,
+        "brecha_calibracion": -0.0030422123387355837,
+        "brecha_RMSE_relativo": -3.6405169489939135,
+        "brecha_spearman": 0.043175437905413006,
+        "razon_medias_obs": 6.733959471766848
+      },
+      "territorio: rural / urbano (pct>0.7)": {
+        "grupo_A": "rural (pct<=0.7)",
+        "grupo_B": "urbano (pct>0.7)",
+        "calib_A": 0.9968256548748968,
+        "calib_B": 0.9994595165639444,
+        "brecha_calibracion": 0.0026338616890475564,
+        "brecha_RMSE_relativo": -2.331332977471222,
+        "brecha_spearman": -0.000932085810117278,
+        "razon_medias_obs": 4.713887965425532
+      }
+    },
+    "brechas_test": {
+      "calendario: habil / finde": {
+        "grupo_A": "habil",
+        "grupo_B": "finde",
+        "calib_A": 0.9626007287925699,
+        "calib_B": 0.9767811365662169,
+        "brecha_calibracion": 0.014180407773647041,
+        "brecha_RMSE_relativo": -0.13493542402612402,
+        "brecha_spearman": -0.01165657406193632,
+        "razon_medias_obs": 1.116679516833719
+      },
+      "clima: seca / lluviosa": {
+        "grupo_A": "seca",
+        "grupo_B": "lluviosa",
+        "calib_A": 0.9692893074017784,
+        "calib_B": 0.9645286752063045,
+        "brecha_calibracion": -0.004760632195473957,
+        "brecha_RMSE_relativo": -0.17996943638895369,
+        "brecha_spearman": 0.005665720883861081,
+        "razon_medias_obs": 1.1583229241995925
+      },
+      "poblacion: resto / baja": {
+        "grupo_A": "resto",
+        "grupo_B": "poblacion baja",
+        "calib_A": 0.9679015838877633,
+        "calib_B": 0.8945891421901828,
+        "brecha_calibracion": -0.07331244169758044,
+        "brecha_RMSE_relativo": 5.240871914249224,
+        "brecha_spearman": -0.04126695339602138,
+        "razon_medias_obs": 0.09664207822323509
+      },
+      "territorio: rural / urbano (pct>0.3)": {
+        "grupo_A": "rural (pct<=0.3)",
+        "grupo_B": "urbano (pct>0.3)",
+        "calib_A": 0.8762322047473442,
+        "calib_B": 0.9686175498375339,
+        "brecha_calibracion": 0.0923853450901897,
+        "brecha_RMSE_relativo": -5.7836587650716975,
+        "brecha_spearman": 0.15002232894597023,
+        "razon_medias_obs": 12.527327291517608
+      },
+      "territorio: rural / urbano (pct>0.5)": {
+        "grupo_A": "rural (pct<=0.5)",
+        "grupo_B": "urbano (pct>0.5)",
+        "calib_A": 0.9618182245741894,
+        "calib_B": 0.9673125377041596,
+        "brecha_calibracion": 0.005494313129970174,
+        "brecha_RMSE_relativo": -3.381833501655029,
+        "brecha_spearman": 0.03070310508646934,
+        "razon_medias_obs": 6.6628997289972896
+      },
+      "territorio: rural / urbano (pct>0.7)": {
+        "grupo_A": "rural (pct<=0.7)",
+        "grupo_B": "urbano (pct>0.7)",
+        "calib_A": 0.944790223861267,
+        "calib_B": 0.9726896053367674,
+        "brecha_calibracion": 0.027899381475500418,
+        "brecha_RMSE_relativo": -2.14900047506669,
+        "brecha_spearman": 0.0007895591269768687,
+        "razon_medias_obs": 4.629624728002438
+      }
+    },
+    "corte_urbano_robusto": false,
+    "ejes_coherentes_entre_particiones": 4,
+    "nota_rmse": "El RMSE absoluto no es comparable entre subgrupos con medias distintas; se reporta el RMSE relativo para ese fin."
+  },
+  "limitaciones": {
+    "L1_subestimacion_rural": {
+      "titulo": "Subestimacion en distritos rurales pequenos",
+      "magnitud": {
+        "calibracion_rural_pct_menor_030": 0.8563062196563257,
+        "calibracion_poblacion_baja": 0.8790254457780112,
+        "n_distritos_rurales": 19,
+        "n_distritos_poblacion_baja": 12
+      },
+      "alcance": "Localizado en distritos muy rurales, no es un gradiente continuo: con umbral 0.5 y 0.7 la brecha desaparece.",
+      "evidencia_convergente": [
+        "celda 3.3 (desajuste persistente)",
+        "celda 5.2 (calibracion por subgrupo)",
+        "NB05 (refutacion de la hipotesis AMSS)"
+      ],
+      "consecuencia": "Una asignacion de recursos guiada por el modelo subatenderia estas zonas ~14%. Debe declararse en el prototipo con el factor medido.",
+      "via_de_solucion": [
+        "parque vehicular por distrito",
+        "densidad de red vial (OSMnx)",
+        "aforos vehiculares del VMT"
+      ]
+    },
+    "L2_fragilidad_del_factor": {
+      "titulo": "El factor de crecimiento es fragil con poca historia",
+      "magnitud": {
+        "rango_g_anual_reestimado": [
+          0.09279876628218475,
+          0.2428969957506657
+        ],
+        "g_anual_global_nb05": 0.07842554,
+        "desvio_maximo_pct": 189.71022946566606
+      },
+      "causa": "El CAGR ancla en el primer y ultimo mes, que arrastran su estacionalidad.",
+      "no_afecta": "RMSE y Spearman practicamente identicos entre variantes: el factor es un multiplicador comun, desplaza el nivel pero no reordena.",
+      "regla_operativa": "No reestimar con menos de 24 meses; anclar en promedios trimestrales."
+    },
+    "L3_resolucion_del_spearman": {
+      "titulo": "El Spearman por subgrupo pierde resolucion en rangos comprimidos",
+      "magnitud": {
+        "variacion_por_corte": 0.35000756900247654,
+        "variacion_por_modelo": 0.11263946728267249,
+        "pares_distinguibles_tercil_medio": 0.06060606060606061
+      },
+      "consecuencia": "Toda comparacion de ordenamiento en subgrupos estrechos debe acompanarse de su intervalo de confianza."
+    },
+    "L4_cobertura_parcial": {
+      "titulo": "Cobertura territorial parcial",
+      "magnitud": {
+        "distritos_con_datos": 103,
+        "distritos_totales": 262
+      },
+      "razon": "Los 159 distritos restantes tienen ceros estructurales, no observados. Incluirlos inventaria ~1.04M de celdas sin respaldo empirico.",
+      "consecuencia": "La cobertura incompleta debe distinguirse visualmente de 'poco riesgo'."
+    },
+    "L5_gemelos": {
+      "titulo": "Los gemelos no son los modelos entregables",
+      "magnitud": {
+        "dif_rmse_vs_nb07": 9.202194427243571e-05,
+        "dif_calibracion_vs_nb07": 0.0008606964724661159,
+        "rf_sin_referencia": true
+      },
+      "consecuencia": "Las conclusiones de las Secciones 2 y 3 valen para la especificacion del modelo, no necesariamente para el ejemplar desplegado."
+    },
+    "L6_dataset_sintetico": {
+      "titulo": "El dataset es sinteticamente calibrado",
+      "consecuencia": "Los patrones estructurales son confiables (calibrados contra ONASEVI/FONAT); los hallazgos sobre eventos individuales o rupturas puntuales, no. El analisis de la Ley Cero Tolerancia debe apoyarse en cifras oficiales anuales."
+    },
+    "L7_variables_ex_post": {
+      "titulo": "Variables ex post excluidas por diseno",
+      "excluidas": [
+        "fallecidos",
+        "lesionados"
+      ],
+      "razon": "Fuga circular: no puede haber fallecidos donde no hubo siniestro.",
+      "consecuencia": "El sistema predice frecuencia, no gravedad futura."
+    },
+    "heredadas": {
+      "NB02": "Seis estaciones meteorologicas para todo el territorio; SS excluida de precipitacion (22.7% completitud), se usa Ilopango para el AMSS.",
+      "NB03": "102 de 103 distritos carecen de feriados patronales locales en la fuente.",
+      "NB05": "Heterogeneidad territorial no explicada por las variables disponibles.",
+      "NB07": "log_tasa_base no viaja dentro del .pkl: sin el JSON las predicciones se desvian ~415,000x sin lanzar error."
+    }
+  }
+}

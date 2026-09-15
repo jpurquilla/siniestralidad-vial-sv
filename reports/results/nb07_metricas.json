@@ -1,0 +1,253 @@
+{
+  "notebook": "NB07_optimizacion_modelos_avanzados",
+  "generado": "2026-09-15T00:18:28",
+  "seed": 42,
+  "matriz": "matriz_frecuencia_v2.csv",
+  "offset": "log_exposicion_v2",
+  "problema_abordado": {
+    "descripcion": "Compromiso entre calibracion y capacidad ordinal identificado en NB05 Seccion 11.6.",
+    "referencia_calibracion": 1.005698033792139,
+    "referencia_tercil_alto_nb05": 0.9455844269984605,
+    "referencia_tercil_alto_e1": 0.9731773957614137
+  },
+  "protocolo": {
+    "seleccion": "particion interna de train (ajuste 2022-2023 / validacion 2024)",
+    "evaluacion": "conjunto de prueba 2025-2026, una sola vez",
+    "funcion_objetivo": "RMSE * (1 + |ln(calibracion)|)",
+    "jerarquia": [
+      "calibracion",
+      "RMSE",
+      "AIC",
+      "MAE (informativo)"
+    ],
+    "definicion_tercil_alto": "los 35 distritos con mayor total observado en el conjunto evaluado"
+  },
+  "modelos": {
+    "Etapa 1 - Binomial Negativa": {
+      "MAE": 0.201136,
+      "RMSE": 0.435272,
+      "media_predicha": 0.119418,
+      "calibracion": 0.795381,
+      "spearman_global": 0.885729,
+      "spearman_tercil_alto": 0.818125,
+      "n_distritos": 103.0,
+      "n_tercil_alto": 35.0
+    },
+    "Etapa 1 - Random Forest": {
+      "MAE": 0.191815,
+      "RMSE": 0.424042,
+      "media_predicha": 0.123048,
+      "calibracion": 0.819563,
+      "spearman_global": 0.990299,
+      "spearman_tercil_alto": 0.973177,
+      "n_distritos": 103.0,
+      "n_tercil_alto": 35.0
+    },
+    "NB05 - Poisson": {
+      "MAE": 0.212615,
+      "RMSE": 0.429055,
+      "media_predicha": 0.144831,
+      "calibracion": 0.964651,
+      "spearman_global": 0.886416,
+      "spearman_tercil_alto": 0.813642,
+      "n_distritos": 103.0,
+      "n_tercil_alto": 35.0,
+      "AIC": 289438.77
+    },
+    "NB05 - Binomial Negativa": {
+      "MAE": 0.211235,
+      "RMSE": 0.429701,
+      "media_predicha": 0.141455,
+      "calibracion": 0.94216,
+      "spearman_global": 0.886059,
+      "spearman_tercil_alto": 0.818125,
+      "n_distritos": 103.0,
+      "n_tercil_alto": 35.0,
+      "AIC": 288836.57
+    },
+    "NB05 - Random Forest": {
+      "MAE": 0.205268,
+      "RMSE": 0.418678,
+      "media_predicha": 0.150994,
+      "calibracion": 1.005698,
+      "spearman_global": 0.937339,
+      "spearman_tercil_alto": 0.945584,
+      "n_distritos": 103.0,
+      "n_tercil_alto": 35.0
+    },
+    "NB07 - ZIP": {
+      "MAE": 0.212194,
+      "RMSE": 0.429449,
+      "media_predicha": 0.143212,
+      "calibracion": 0.953864,
+      "spearman_global": 0.88641,
+      "spearman_tercil_alto": 0.822046,
+      "n_distritos": 103.0,
+      "n_tercil_alto": 35.0,
+      "AIC": 287829.954503
+    },
+    "NB07 - ZINB": {
+      "MAE": 0.212202,
+      "RMSE": 0.429652,
+      "media_predicha": 0.14279,
+      "calibracion": 0.951054,
+      "spearman_global": 0.887141,
+      "spearman_tercil_alto": 0.818685,
+      "n_distritos": 103.0,
+      "n_tercil_alto": 35.0,
+      "AIC": 287585.277435
+    },
+    "NB07 - Random Forest regularizado": {
+      "MAE": 0.203808,
+      "RMSE": 0.416231,
+      "media_predicha": 0.149219,
+      "calibracion": 0.993876,
+      "spearman_global": 0.93718,
+      "spearman_tercil_alto": 0.942083,
+      "n_distritos": 103.0,
+      "n_tercil_alto": 35.0
+    },
+    "NB07 - XGBoost (exposición feature)": {
+      "MAE": 0.203085,
+      "RMSE": 0.414302,
+      "media_predicha": 0.143188,
+      "calibracion": 0.953705,
+      "spearman_global": 0.94735,
+      "spearman_tercil_alto": 0.952027,
+      "n_distritos": 103.0,
+      "n_tercil_alto": 35.0
+    },
+    "NB07 - XGBoost (exposición offset)": {
+      "MAE": 0.200749,
+      "RMSE": 0.412055,
+      "media_predicha": 0.145181,
+      "calibracion": 0.966979,
+      "spearman_global": 0.970777,
+      "spearman_tercil_alto": 0.977519,
+      "n_distritos": 103.0,
+      "n_tercil_alto": 35.0
+    }
+  },
+  "estabilidad_temporal": {
+    "deriva_18_meses": {
+      "RF Etapa 1": -0.1075,
+      "RF NB05": -0.0408,
+      "RF NB07": -0.0451,
+      "XGB feature": -0.0629,
+      "XGB offset": -0.0008,
+      "ZINB": 0.0008
+    },
+    "sigma_calibracion_mensual": {
+      "RF Etapa 1": 0.0708,
+      "RF NB05": 0.0395,
+      "RF NB07": 0.0411,
+      "XGB feature": 0.039,
+      "XGB offset": 0.0378,
+      "ZINB": 0.0286
+    }
+  },
+  "optuna": {
+    "feature": {
+      "ensayos": 40,
+      "mejor_objetivo": 0.3876663683599208,
+      "mejores_parametros": {
+        "max_depth": 7,
+        "eta": 0.022980322436920667,
+        "min_child_weight": 4.1819808863238395,
+        "subsample": 0.6647128352861895,
+        "colsample_bytree": 0.9648733441409053,
+        "reg_lambda": 18.533300337940506,
+        "reg_alpha": 0.0012241751547850835,
+        "gamma": 1.8803039672759174
+      },
+      "n_rondas": 403,
+      "rmse_validacion": 0.3876640406971451,
+      "calibracion_validacion": 1.0000060043478873
+    },
+    "offset": {
+      "ensayos": 40,
+      "mejor_objetivo": 0.3870219863321002,
+      "mejores_parametros": {
+        "max_depth": 3,
+        "eta": 0.14739737905025435,
+        "min_child_weight": 3.107307081040582,
+        "subsample": 0.9027973829209696,
+        "colsample_bytree": 0.8266402508612634,
+        "reg_lambda": 0.05447376552281462,
+        "reg_alpha": 0.15327711933776367,
+        "gamma": 0.0012798882323709277
+      },
+      "n_rondas": 338,
+      "rmse_validacion": 0.3869403211501104,
+      "calibracion_validacion": 0.9997889685818101
+    }
+  },
+  "inflados_en_ceros": {
+    "especificacion_inflacion": "territorial",
+    "aic_zip": 287829.95,
+    "aic_zinb": 287585.28,
+    "aic_poisson_nb05": 289438.77,
+    "aic_binomial_negativa_nb05": 288836.57,
+    "alpha_zinb": 0.3584,
+    "prob_media_cero_estructural": 0.4256
+  },
+  "ablacion_poblacion_baja": [
+    {
+      "MAE": 0.189296,
+      "RMSE": 0.387664,
+      "media_predicha": 0.13463,
+      "calibracion": 1.000006,
+      "n_rondas": 403.0,
+      "objetivo": 0.387666,
+      "variante": "feature",
+      "esquema": "8 (con)"
+    },
+    {
+      "MAE": 0.189356,
+      "RMSE": 0.387563,
+      "media_predicha": 0.134608,
+      "calibracion": 0.999845,
+      "n_rondas": 397.0,
+      "objetivo": 0.387623,
+      "variante": "feature",
+      "esquema": "7 (sin)"
+    },
+    {
+      "MAE": 0.186166,
+      "RMSE": 0.38694,
+      "media_predicha": 0.134601,
+      "calibracion": 0.999789,
+      "n_rondas": 338.0,
+      "objetivo": 0.387022,
+      "variante": "offset",
+      "esquema": "8 (con)"
+    },
+    {
+      "MAE": 0.186656,
+      "RMSE": 0.387119,
+      "media_predicha": 0.134249,
+      "calibracion": 0.997176,
+      "n_rondas": 243.0,
+      "objetivo": 0.388213,
+      "variante": "offset",
+      "esquema": "7 (sin)"
+    }
+  ],
+  "interpretabilidad": {
+    "modelo_explicado": "XGBoost (exposición offset)",
+    "n_celdas_shap": 40000,
+    "importancia_shap": {
+      "pct_urbano": 0.4503,
+      "prcp_mensual": 0.05825,
+      "es_finde": 0.04303,
+      "es_lluviosa": 0.02559,
+      "dia_semana": 0.02502,
+      "poblacion_baja": 0.01664,
+      "es_feriado": 0.00966,
+      "periodo_agostino": 0.00586
+    }
+  },
+  "modelo_seleccionado": "NB07 - XGBoost (exposición offset)",
+  "criterio_seleccion": "máximo Spearman en el tercil superior entre los modelos que conservan la calibración de NB05",
+  "umbral_calibracion_admisible": 0.05
+}

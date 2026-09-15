@@ -1,0 +1,154 @@
+{
+  "criterio": {
+    "problema": "Subestimacion de calibracion en distritos rurales (L1)",
+    "magnitud_detectada": {
+      "calibracion_rural": 0.8563062196563257,
+      "n_distritos": 19,
+      "umbral_pct_urbano": 0.3
+    },
+    "remedio": "Factor multiplicativo unico para el grupo rural, estimado como sum(observado)/sum(predicho) sobre la particion de ajuste 2022-2023.",
+    "por_que_es_seguro": "Un factor unico por grupo no reordena distritos dentro del grupo (multiplica a todos por lo mismo): no puede inflar el Spearman.",
+    "estimacion": "particion de ajuste (2022-2023)",
+    "validacion": "validacion 2024",
+    "condiciones": {
+      "1_mejora_rural": {
+        "metrica": "|calibracion_rural - 1|",
+        "regla": "debe bajar al menos 0.05",
+        "umbral": 0.05
+      },
+      "2_calibracion_global": {
+        "metrica": "|calibracion_global - 1|",
+        "regla": "no empeora mas de 0.02",
+        "umbral": 0.02
+      },
+      "3_rmse_global": {
+        "metrica": "RMSE global",
+        "regla": "no empeora mas de 0.5%",
+        "umbral": 0.005
+      },
+      "4_ordenamiento": {
+        "metrica": "spearman global",
+        "regla": "no baja mas de 0.01",
+        "umbral": 0.01
+      }
+    },
+    "regla_de_decision": "Se acepta solo si se cumplen LAS CUATRO condiciones. Resultado en el limite -> indeterminado.",
+    "tension_con_nb05": {
+      "decision_previa": "Declarada como limitacion. Requiere fuentes externas.",
+      "que_sigue_vigente": [
+        "memoriza en vez de explicar",
+        "confunde siniestralidad con intensidad de reporte"
+      ],
+      "que_cambia": "NB05 evaluaba un efecto por distrito (103 parametros). Aqui se estima UN parametro para un grupo definido por una variable ya presente en el modelo: dos ordenes de magnitud menos de grados de libertad.",
+      "caracter": "revision acotada y consciente, no tecnica sin relacion con NB05"
+    },
+    "alternativas_descartadas": {
+      "efecto_aleatorio_por_distrito": "Es lo que NB05 rechazo: memoriza y no generaliza.",
+      "variables_osm": "Sin poligonos de distrito; el centroide se calculo con las coordenadas de los accidentes -> fuga circular. Linea futura.",
+      "modelo_en_dos_etapas": "Su proposito era el ordenamiento del tercil medio, que la Seccion 2 mostro que no esta roto."
+    }
+  },
+  "umbral_rural": 0.3,
+  "n_rural": 19,
+  "factores": {
+    "ajuste": {
+      "resto": 0.9994777723684737,
+      "rural": 1.0021699986347476
+    },
+    "validacion_informativo": {
+      "resto": 0.9985428881983721,
+      "rural": 1.167806481860594
+    }
+  },
+  "resultados_validacion": {
+    "sin remedio (vigente)": {
+      "calibracion_global": 0.998928272109344,
+      "RMSE_global": 0.38703234309438284,
+      "MAE_global": 0.18622324612130103,
+      "spearman_global": 0.9779815764272158,
+      "calibracion_rural": 0.8563061720233853,
+      "RMSE_rural": 0.11250761033862215,
+      "spearman_rural": 0.9223344459653743,
+      "calibracion_resto": 1.0014592704422978,
+      "RMSE_resto": 0.4252210108623367,
+      "spearman_resto": 0.968633248394025
+    },
+    "A - solo rural": {
+      "calibracion_global": 0.9989605017085004,
+      "RMSE_global": 0.38703231593463017,
+      "MAE_global": 0.18622746051920658,
+      "spearman_global": 0.9779815764272158,
+      "calibracion_rural": 0.8581644029839057,
+      "RMSE_rural": 0.1125071038429306,
+      "spearman_rural": 0.9223344459653743,
+      "calibracion_resto": 1.001459214244145,
+      "RMSE_resto": 0.4252210108623367,
+      "spearman_resto": 0.968633248394025
+    },
+    "B - ambos grupos": {
+      "calibracion_global": 0.99844663170122,
+      "RMSE_global": 0.3870323945918385,
+      "MAE_global": 0.1861950684992402,
+      "spearman_global": 0.9779815764272158,
+      "calibracion_rural": 0.8581644029839057,
+      "RMSE_rural": 0.1125071038429306,
+      "spearman_rural": 0.9223344459653743,
+      "calibracion_resto": 1.00093622457062,
+      "RMSE_resto": 0.4252210986490885,
+      "spearman_resto": 0.968633248394025
+    }
+  },
+  "condiciones": {
+    "A - solo rural": {
+      "1_mejora_rural": 0.0018582309605204017,
+      "c1_cumple": false,
+      "2_degrad_calib_global": -3.22295991563859e-05,
+      "c2_cumple": true,
+      "3_degrad_rmse_pct": -7.017437470973656e-06,
+      "c3_cumple": true,
+      "4_caida_spearman": 0.0,
+      "c4_cumple": true,
+      "cumple_todas": false
+    },
+    "B - ambos grupos": {
+      "1_mejora_rural": 0.0018582309605204017,
+      "c1_cumple": false,
+      "2_degrad_calib_global": 0.00048164040812392894,
+      "c2_cumple": true,
+      "3_degrad_rmse_pct": 1.3305724084177276e-05,
+      "c3_cumple": true,
+      "4_caida_spearman": 0.0,
+      "c4_cumple": true,
+      "cumple_todas": false
+    }
+  },
+  "veredicto": {
+    "aceptado": false,
+    "motivo": "mejora insuficiente",
+    "mejora_rural_obtenida": 0.0018582309605204017,
+    "mejora_rural_exigida": 0.05,
+    "es_inocuo": true,
+    "factor_estimado_en_ajuste": 1.0021699986347476,
+    "factor_necesario_en_validacion": 1.167806481860594,
+    "brecha_entre_ventanas": 0.16563648322584634,
+    "diagnostico": "El modelo esta correctamente calibrado en el grupo rural durante su periodo de entrenamiento (factor 1.0022). El desajuste aparece al extrapolar (factor necesario 1.1678). Un factor estimado en el pasado no corrige un problema que en el pasado no existe.",
+    "reformulacion_de_L1": "El sesgo rural no es un error constante de nivel sino una perdida de calibracion al proyectar hacia adelante.",
+    "hipotesis_derivada": {
+      "enunciado": "Tendencia diferencial: la siniestralidad rural podria crecer a un ritmo distinto del promedio nacional, y el factor unico de NB05 (g_anual = 7.84%) subcorregiria a ese grupo.",
+      "estado": "NO VERIFICADA. Es una hipotesis derivada del resultado, no un hecho medido.",
+      "coherente_con": [
+        "L2 (fragilidad del factor)",
+        "deriva temporal documentada en NB05"
+      ]
+    },
+    "linea_futura_prioritaria": {
+      "remedio": "Factor de crecimiento diferenciado por grupo territorial",
+      "por_que_no_aqui": [
+        "Modifica la especificacion de la exposicion (objeto de NB05); obligaria a reentrenar toda la cadena y revisar las conclusiones de NB05 y NB07.",
+        "La celda 5.1 mostro que el CAGR es fragil con poca historia; estimarlo sobre 19 distritos multiplicaria esa fragilidad.",
+        "Requiere verificar primero que la tendencia diferencial existe."
+      ],
+      "prerequisito": "Correccion metodologica de L2: anclar en promedios trimestrales y exigir un minimo de 24 meses de historia."
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "generado": "2026-09-15T10:08:56",
+  "criterio": {
+    "regla": "La caida se considera real si el IC 95% de la diferencia pareada (RF Etapa 1 - XGB offset) en el tercil medio EXCLUYE el cero, en la particion de diagnostico.",
+    "particion": "validacion_2024",
+    "comparacion": [
+      "RF Etapa 1",
+      "XGB offset (NB07)"
+    ],
+    "tercil": "medio",
+    "nivel": 0.95,
+    "remuestreos": 2000,
+    "matiz_1": "IC que contiene el cero -> la comparacion no sostiene la afirmacion.",
+    "matiz_2": "IC que excluye el cero con el vigente en el techo de ruido -> el problema esta en que Etapa 1 supera el ruido, no en que el vigente falle.",
+    "matiz_3": "Una diferencia distinguible puede ser irrelevante en magnitud. Se reporta el tamano junto al intervalo."
+  }
+}
