@@ -82,6 +82,12 @@ se encuentra, o "features" del modelo — es intencional. Ver la sección 6.
 | GET | `/api/v1/distritos/geojson` | GeoJSON para el mapa (ver sección 7 si falta) |
 | POST | `/api/v1/predicciones` | Predicción para uno o varios distritos, rango de fechas y franjas |
 | GET | `/api/v1/ranking` | Distritos ordenados por siniestros esperados en un rango, con su tercil |
+| GET | `/api/v1/impacto-ley-cero-tolerancia` | Serie anual 2022-2026 real (NB06) y el impacto declarado de la ley vigente desde 2024-12-20. Retrospectivo, nunca predictivo |
+| GET | `/api/v1/usuarios-vulnerables` | Reparto de fatales y letalidad por tipo de usuario y por rango etario (NB09 §4, retrospectivo) |
+| GET | `/api/v1/comparacion-historica` | Observado real vs. predicho por el modelo, sumado por distrito sobre las 676,504 filas históricas — diagnóstico de ajuste, no predicción |
+| GET | `/api/v1/equidad` | Calibración y Spearman predicho-vs-observado por urbano/rural (umbral de NB08 §4) y por alta/baja densidad poblacional |
+| GET | `/api/v1/siniestros/puntos` | Puntos individuales (lat/lon reales) de `siniestros.csv`, con filtros server-side (fecha, tipo de siniestro, vehículo, hora, departamento/distrito, factor causante) para el mapa de hotspots estilo ONASEVI. Tope de 90,000 puntos por respuesta (413 si se excede) |
+| GET | `/api/v1/siniestros/opciones-filtro` | Valores reales disponibles para poblar los filtros del mapa de hotspots (tipos de siniestro, de vehículo, factores causantes, departamentos) |
 
 Ejemplo de `POST /api/v1/predicciones`:
 
@@ -104,6 +110,27 @@ limitación documentada de NB07 §5.4, no un defecto de este endpoint. Esa
 agrupación es **fija** (histórica, del conjunto de test 2025-2026 de NB07),
 no se recalcula según el rango de fechas consultado — ver
 `scripts/generar_terciles.py`.
+
+Los cuatro endpoints de `impacto-ley-cero-tolerancia`, `usuarios-vulnerables`,
+`comparacion-historica` y `equidad` son **retrospectivos**: describen el
+histórico 2022-2026 (o, en `comparacion-historica`/`equidad`, qué tan bien el
+modelo ajustó ese histórico). Ninguno acepta parámetros de fecha ni predice
+nada — no confundirlos con `/api/v1/predicciones`. `comparacion-historica`
+corre el modelo en lote sobre las 676,504 filas de `matriz_frecuencia_v2.csv`
+una sola vez, en el lifespan (ver `ComparacionHistoricaAdapter`), reusando
+`XGBoostFrecuenciaAdapter.predecir_lote` — nunca reimplementa la inferencia,
+por la misma razón que la sección 6 explica a continuación.
+
+`/api/v1/siniestros/puntos` también es retrospectivo (89,946 siniestros
+individuales de `siniestros.csv`, 2022-2026) y replica el filtrado
+server-side de observatoriovial.fonat.gob.sv. Su respuesta incluye un
+`aviso` que cita el hallazgo de NB10: **no hay estructura espacial real por
+debajo de ~1 km** en este conjunto (efecto medido 0.71%, muy por debajo del
+umbral de significancia) — los clusters visuales reflejan reparto por
+exposición poblacional, no concentraciones viales verificadas. Por eso el
+resto de la API es deliberadamente coroplética (por distrito) y no de
+puntos: este endpoint es la única excepción, autorizada explícitamente para
+replicar el mapa de hotspots de ONASEVI/FONAT.
 
 ---
 
@@ -144,19 +171,17 @@ Por eso este servicio:
 
 ## 7. GeoJSON de distritos
 
-**No existe ningún archivo GeoJSON de distritos en este repositorio.**
-`GET /api/v1/distritos/geojson` devuelve **503** con un mensaje que indica
-dónde colocarlo. Este servicio no inventa polígonos de ejemplo.
+Ya existe un GeoJSON real en `data/geo/distritos.geojson`: los 266 municipios
+(ADM2) de El Salvador según GADM v4.1, de los cuales 103 están etiquetados
+con `distrito_key` (cruzando con `GET /api/v1/distritos`); el resto se
+sirven igual, sin ese campo, y el frontend los pinta como "sin dato" — así
+el mapa no queda con huecos donde no hay modelo. Si el archivo llegara a
+faltar o apuntar a otra ruta inválida, `GET /api/v1/distritos/geojson`
+devuelve **503** con un mensaje explícito; este servicio nunca inventa
+polígonos de ejemplo.
 
-Para habilitarlo, colocar un GeoJSON válido (una `Feature` por distrito, con
-la propiedad `distrito_key` o `codigo` para poder cruzarlo con
-`GET /api/v1/distritos`) en:
-
-```
-data/geo/distritos.geojson
-```
-
-o apuntar `RUTA_GEOJSON_DISTRITOS` a otra ubicación.
+`RUTA_GEOJSON_DISTRITOS` (variable de entorno) apunta a otra ubicación si
+hace falta.
 
 ---
 
@@ -166,7 +191,7 @@ o apuntar `RUTA_GEOJSON_DISTRITOS` a otra ubicación.
 pytest
 ```
 
-54 tests, organizados así:
+105 tests, organizados así:
 
 - `test_modelo_adapter.py` — arranque, validaciones, y la regresión del
   offset (sección 6).
@@ -174,11 +199,25 @@ pytest
   `test_distrito_repository.py`, `test_tercil_repository.py`,
   `test_geojson_adapter.py` — cada adaptador de infraestructura contra los
   artefactos reales del repositorio.
+- `test_impacto_ley_adapter.py`, `test_usuarios_vulnerables_adapter.py` —
+  los dos adaptadores retrospectivos, verificados reproduciendo a mano los
+  números ya publicados en NB06/NB09_RESUMEN.md antes de escribir el código.
+- `test_comparacion_historica_adapter.py` — agregación con un predictor
+  falso (rápido) más un test de integración con el modelo real que verifica
+  que la razón predicho/observado quede en un rango sano (la misma clase de
+  regresión de offset que la sección 6, aplicada a este agregado).
+- `test_calcular_equidad.py` — el caso de uso de equidad, con dobles en
+  memoria.
+- `test_siniestro_punto_adapter.py` — el adaptador de puntos individuales
+  (`siniestros.csv`), verificando conteos reales exactos (89,946 puntos,
+  1,656 "Volcamiento", 14 departamentos) y cada filtro por separado.
 - `test_casos_uso.py` — orquestación de `application/` con dobles de
   prueba en memoria (no toca el modelo real).
 - `test_api.py` — end-to-end con `TestClient`, incluida la validación de
   entradas inválidas (distrito inexistente, fecha absurda, franja fuera de
-  rango, rango de fechas demasiado largo).
+  rango, rango de fechas demasiado largo) y los 6 endpoints retrospectivos
+  (impacto de ley, usuarios vulnerables, comparación histórica, equidad,
+  puntos de siniestros y sus opciones de filtro).
 
 Los terciles se regeneran (no corre en los tests ni en el arranque) con:
 

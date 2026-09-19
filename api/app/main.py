@@ -12,9 +12,18 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.application.calcular_equidad import CalcularEquidad
 from app.application.predecir_celda import DistritoNoEncontradoError, PredecirCelda
 from app.application.ranking_distritos import RankingDistritos
 from app.config import settings
+from app.infrastructure.analitica.comparacion_historica_adapter import (
+    ComparacionHistoricaAdapter,
+)
+from app.infrastructure.analitica.impacto_ley_adapter import ImpactoLeyAdapter
+from app.infrastructure.analitica.siniestro_punto_adapter import SiniestroPuntoAdapter
+from app.infrastructure.analitica.usuarios_vulnerables_adapter import (
+    UsuariosVulnerablesAdapter,
+)
 from app.infrastructure.geo.distrito_repository import DistritoRepository
 from app.infrastructure.geo.geojson_adapter import GeoJsonAdapter
 from app.infrastructure.modelo.calendario_adapter import CalendarioAdapter
@@ -23,7 +32,18 @@ from app.infrastructure.modelo.exposicion_adapter import ExposicionAdapter
 from app.infrastructure.modelo.info_modelo import cargar_info_modelo
 from app.infrastructure.modelo.tercil_repository import TercilRepository
 from app.infrastructure.modelo.xgboost_adapter import XGBoostFrecuenciaAdapter
-from app.infrastructure.web.routers import distritos, modelo, predicciones, ranking, salud
+from app.infrastructure.web.routers import (
+    comparacion_historica,
+    distritos,
+    equidad,
+    impacto_ley,
+    modelo,
+    predicciones,
+    ranking,
+    salud,
+    siniestros,
+    usuarios_vulnerables,
+)
 
 logging.basicConfig(level=settings.nivel_log, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -40,6 +60,14 @@ async def lifespan(app: FastAPI):
     clima_adapter = ClimaAdapter(settings.ruta_matriz_frecuencia)
     tercil_repo = TercilRepository(settings.ruta_terciles)
     geojson_adapter = GeoJsonAdapter(settings.ruta_geojson_distritos)
+    impacto_ley_adapter = ImpactoLeyAdapter(settings.ruta_resultados_nb06)
+    usuarios_vulnerables_adapter = UsuariosVulnerablesAdapter(settings.ruta_matriz_severidad)
+    # Reusa xgboost_adapter.predecir_lote() — nunca reimplementa la
+    # inferencia (ver api/README.md §6 y el docstring del adaptador).
+    comparacion_historica_adapter = ComparacionHistoricaAdapter(
+        settings.ruta_matriz_frecuencia, xgboost_adapter
+    )
+    siniestro_punto_repo = SiniestroPuntoAdapter(settings.ruta_siniestros)
 
     try:
         xgboost_adapter.cargar_y_validar()
@@ -48,6 +76,12 @@ async def lifespan(app: FastAPI):
         distrito_repo.cargar_y_validar()
         clima_adapter.cargar_y_validar()
         tercil_repo.cargar_y_validar()
+        impacto_ley_adapter.cargar_y_validar()
+        usuarios_vulnerables_adapter.cargar_y_validar()
+        # Corre el modelo en lote sobre las 676,504 filas históricas UNA
+        # sola vez acá — nunca por request (ver docstring del adaptador).
+        comparacion_historica_adapter.cargar_y_validar()
+        siniestro_punto_repo.cargar_y_validar()
     except Exception:
         logger.exception(
             "El servicio NO arrancó: falló la validación de un artefacto. "
@@ -64,6 +98,13 @@ async def lifespan(app: FastAPI):
     app.state.distrito_repo = distrito_repo
     app.state.geojson_adapter = geojson_adapter
     app.state.info_modelo = cargar_info_modelo(settings.ruta_metricas_nb07, settings.ruta_especificacion_nb07)
+    app.state.impacto_ley_adapter = impacto_ley_adapter
+    app.state.usuarios_vulnerables_adapter = usuarios_vulnerables_adapter
+    app.state.comparacion_historica_adapter = comparacion_historica_adapter
+    app.state.calcular_equidad_uc = CalcularEquidad(
+        comparacion_historica_adapter, distrito_repo, settings.umbral_pct_urbano_equidad
+    )
+    app.state.siniestro_punto_repo = siniestro_punto_repo
     app.state.estado_salud = {
         "estado": "ok",
         "modelo_cargado": True,
@@ -98,3 +139,8 @@ app.include_router(modelo.router)
 app.include_router(distritos.router)
 app.include_router(predicciones.router)
 app.include_router(ranking.router)
+app.include_router(impacto_ley.router)
+app.include_router(usuarios_vulnerables.router)
+app.include_router(comparacion_historica.router)
+app.include_router(equidad.router)
+app.include_router(siniestros.router)

@@ -145,3 +145,126 @@ class HealthResponse(BaseModel):
     log_tasa_base: float | None
     prediccion_canaria_ok: bool
     version: str
+
+
+AVISO_RETROSPECTIVO = (
+    "Esta pantalla describe el histórico 2022-2026. No predice nada y no debe "
+    "usarse como estimación de riesgo futuro — ver /api/v1/modelo/info para lo "
+    "que el modelo predictivo sí admite."
+)
+
+AVISO_COMPARACION = (
+    "Comparación diagnóstica entre lo observado (conjunto sintético, calibrado "
+    "sobre agregados de ONASEVI/FONAT — ver NB01) y lo predicho por el modelo de "
+    "NB07 sobre esas mismas filas históricas. No es una predicción para fechas "
+    "futuras."
+)
+
+
+class ImpactoAnualOut(BaseModel):
+    anio: str
+    siniestros: int
+    fallecidos: int
+    letalidad: float = Field(description="Fallecidos por cada 100 siniestros.")
+    cobertura: str
+
+
+class ImpactoResumenItemOut(BaseModel):
+    metrica: str
+    periodo: str
+    variacion_interanual_pct: float | None
+    lectura: str = Field(
+        description="Nunca afirma causalidad: la ley coincide con el cambio, no lo causa."
+    )
+
+
+class ImpactoLeyResponse(BaseModel):
+    aviso: str = AVISO_RETROSPECTIVO
+    fecha_aprobacion_ley: date
+    serie_anual: list[ImpactoAnualOut]
+    resumen: list[ImpactoResumenItemOut]
+    limitaciones: list[str]
+
+
+class RepartoTipoUsuarioOut(BaseModel):
+    tipo: str
+    pct_fatales: float = Field(description="% de siniestros fatales de este tipo, sobre el total con víctima.")
+    letalidad_por_siniestro: float = Field(
+        description="Fracción de los siniestros de este tipo que tuvieron al menos un fallecido."
+    )
+
+
+class LetalidadPorEdadOut(BaseModel):
+    rango_etario: str
+    victimas: int
+    letalidad: float
+
+
+class UsuariosVulnerablesResponse(BaseModel):
+    aviso: str = AVISO_RETROSPECTIVO
+    reparto_por_tipo: list[RepartoTipoUsuarioOut]
+    letalidad_por_edad: list[LetalidadPorEdadOut]
+
+
+class ComparacionDistritoOut(BaseModel):
+    distrito_codigo: str
+    nombre: str
+    observado: float
+    predicho: float
+    brecha_pct: float = Field(description="(1 - predicho/observado) * 100. Positivo = el modelo subestima.")
+
+
+class ComparacionHistoricaResponse(BaseModel):
+    aviso: str = AVISO_COMPARACION
+    distritos: list[ComparacionDistritoOut]
+
+
+class GrupoEquidadOut(BaseModel):
+    grupo: str
+    calibracion: float = Field(description="sum(observado)/sum(predicho) del grupo. 1.0 = calibración perfecta.")
+    spearman: float = Field(description="Correlación de Spearman entre predicho y observado dentro del grupo.")
+    n_distritos: int
+
+
+class EquidadResponse(BaseModel):
+    aviso: str = AVISO_COMPARACION
+    urbano_rural: list[GrupoEquidadOut]
+    densidad_poblacional: list[GrupoEquidadOut]
+
+
+AVISO_HOTSPOTS = (
+    "Estos puntos son sintéticos, calibrados sobre agregados de ONASEVI/FONAT "
+    "(ver NB01). NB10 no encontró estructura espacial real por debajo de ~1 km "
+    "en este conjunto (efecto medido: 0.71%, muy por debajo del umbral de "
+    "significancia usado): los clusters reflejan el reparto por exposición "
+    "poblacional, no concentraciones viales verificadas."
+)
+
+
+class SiniestroPuntoOut(BaseModel):
+    id_siniestro: str
+    fecha: date
+    hora: str
+    franja: Franja
+    latitud: float
+    longitud: float
+    departamento: str
+    distrito: str
+    tipo_siniestro: str
+    factor_causante: str
+    tipo_vehiculo: str
+    fallecidos: int
+    lesionados: int
+
+
+class SiniestrosPuntosResponse(BaseModel):
+    aviso: str = AVISO_HOTSPOTS
+    total: int
+    puntos: list[SiniestroPuntoOut]
+
+
+class OpcionesFiltroSiniestrosResponse(BaseModel):
+    tipos_siniestro: list[str]
+    tipos_vehiculo: list[str]
+    factores_causantes: list[str]
+    departamentos: list[str]

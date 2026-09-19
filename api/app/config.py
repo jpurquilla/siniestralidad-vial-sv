@@ -34,6 +34,13 @@ class Settings(BaseSettings):
     # --- GeoJSON de distritos: puede no existir (ver README, sección GeoJSON) ---
     ruta_geojson_distritos: Path = _RAIZ_REPO / "data" / "geo" / "distritos.geojson"
 
+    # --- Análisis retrospectivos (NB06, NB09) — nunca predictivos ---
+    ruta_resultados_nb06: Path = _RAIZ_REPO / "reports" / "results" / "nb06_resultados.json"
+    ruta_matriz_severidad: Path = _RAIZ_REPO / "data" / "processed" / "matriz_severidad.csv"
+
+    # --- Umbral urbano/rural para el panel de equidad (mismo corte que NB08 §4) ---
+    umbral_pct_urbano_equidad: float = 0.3
+
     # --- Terciles precomputados (ver infrastructure/modelo/terciles_nb07.json) ---
     ruta_terciles: Path = (
         Path(__file__).resolve().parent / "infrastructure" / "modelo" / "terciles_nb07.json"
