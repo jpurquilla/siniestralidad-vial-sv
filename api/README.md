@@ -84,7 +84,7 @@ se encuentra, o "features" del modelo — es intencional. Ver la sección 6.
 | GET | `/api/v1/ranking` | Distritos ordenados por siniestros esperados en un rango, con su tercil |
 | GET | `/api/v1/impacto-ley-cero-tolerancia` | Serie anual 2022-2026 real (NB06) y el impacto declarado de la ley vigente desde 2024-12-20. Retrospectivo, nunca predictivo |
 | GET | `/api/v1/usuarios-vulnerables` | Reparto de fatales y letalidad por tipo de usuario y por rango etario (NB09 §4, retrospectivo) |
-| GET | `/api/v1/comparacion-historica` | Observado real vs. predicho por el modelo, sumado por distrito sobre las 676,504 filas históricas — diagnóstico de ajuste, no predicción |
+| GET | `/api/v1/comparacion-historica` | Observado real vs. predicho por el modelo, sumado por distrito sobre las 224,952 filas de la **partición de prueba** (2025-2026) — diagnóstico de ajuste, no predicción |
 | GET | `/api/v1/equidad` | Calibración y Spearman predicho-vs-observado por urbano/rural (umbral de NB08 §4) y por alta/baja densidad poblacional |
 | GET | `/api/v1/siniestros/puntos` | Puntos individuales (lat/lon reales) de `siniestros.csv`, con filtros server-side (fecha, tipo de siniestro, vehículo, hora, departamento/distrito, factor causante) para el mapa de hotspots estilo ONASEVI. Tope de 90,000 puntos por respuesta (413 si se excede) |
 | GET | `/api/v1/siniestros/opciones-filtro` | Valores reales disponibles para poblar los filtros del mapa de hotspots (tipos de siniestro, de vehículo, factores causantes, departamentos) |
@@ -116,8 +116,14 @@ Los cuatro endpoints de `impacto-ley-cero-tolerancia`, `usuarios-vulnerables`,
 histórico 2022-2026 (o, en `comparacion-historica`/`equidad`, qué tan bien el
 modelo ajustó ese histórico). Ninguno acepta parámetros de fecha ni predice
 nada — no confundirlos con `/api/v1/predicciones`. `comparacion-historica`
-corre el modelo en lote sobre las 676,504 filas de `matriz_frecuencia_v2.csv`
-una sola vez, en el lifespan (ver `ComparacionHistoricaAdapter`), reusando
+corre el modelo en lote sobre `matriz_frecuencia_v2.csv`, filtrando
+**únicamente la partición `split == "test"`** (224,952 de las 676,504 filas,
+2025-2026) antes de agregar — regla D1 de NB08
+(`exigir_particion_de_diagnostico`): el conjunto de prueba es la única
+fuente válida para reportar una métrica de desempeño, nunca se mezcla con
+train, porque el modelo ya vio esas filas al entrenar y eso infla la
+calibración/Spearman de forma artificial. Esto corre una sola vez, en el
+lifespan (ver `ComparacionHistoricaAdapter`), reusando
 `XGBoostFrecuenciaAdapter.predecir_lote` — nunca reimplementa la inferencia,
 por la misma razón que la sección 6 explica a continuación.
 

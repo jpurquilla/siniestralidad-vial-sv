@@ -12,7 +12,7 @@ from app.domain.models import Franja, FuentePrecipitacion, Tercil
 
 AVISO_DATOS_SINTETICOS = (
     "El conjunto de datos es sintético, calibrado sobre agregados de "
-    "ONASEVI/FONAT (ver NB01). No usar para decisiones operativas sin "
+    "ONASEVI/FONAT. No usar para decisiones operativas sin "
     "validación con registros reales."
 )
 
@@ -149,15 +149,12 @@ class HealthResponse(BaseModel):
 
 AVISO_RETROSPECTIVO = (
     "Esta pantalla describe el histórico 2022-2026. No predice nada y no debe "
-    "usarse como estimación de riesgo futuro — ver /api/v1/modelo/info para lo "
-    "que el modelo predictivo sí admite."
+    "usarse como estimación de riesgo futuro."
 )
 
 AVISO_COMPARACION = (
     "Comparación diagnóstica entre lo observado (conjunto sintético, calibrado "
-    "sobre agregados de ONASEVI/FONAT — ver NB01) y lo predicho por el modelo de "
-    "NB07 sobre esas mismas filas históricas. No es una predicción para fechas "
-    "futuras."
+    "sobre agregados de ONASEVI/FONAT) y lo predicho por el modelo."
 )
 
 
@@ -233,11 +230,11 @@ class EquidadResponse(BaseModel):
 
 
 AVISO_HOTSPOTS = (
-    "Estos puntos son sintéticos, calibrados sobre agregados de ONASEVI/FONAT "
-    "(ver NB01). NB10 no encontró estructura espacial real por debajo de ~1 km "
-    "en este conjunto (efecto medido: 0.71%, muy por debajo del umbral de "
-    "significancia usado): los clusters reflejan el reparto por exposición "
-    "poblacional, no concentraciones viales verificadas."
+    "Estos puntos son sintéticos, calibrados sobre agregados de ONASEVI/FONAT. "
+    "No se encontró estructura espacial real por debajo de ~1 km en este "
+    "conjunto (efecto medido: 0.71%, muy por debajo del umbral de significancia "
+    "usado): los clusters reflejan el reparto por exposición poblacional, no "
+    "concentraciones viales verificadas."
 )
 
 

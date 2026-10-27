@@ -1,10 +1,21 @@
 """Adaptador de comparación histórica: observado real (columna `n_siniestros`
 de matriz_frecuencia_v2.csv) contra predicho por el modelo de NB07, sumados
-por distrito sobre las 676,504 filas del histórico.
+por distrito sobre la partición de PRUEBA del histórico (224,952 filas,
+2025-2026).
+
+Regla D1 de NB08 (`exigir_particion_de_diagnostico`): el conjunto de prueba
+es la única fuente válida para reportar una métrica de desempeño — nunca se
+mezcla con train, porque el modelo ya vio esas filas al entrenar y eso
+infla la calibración/Spearman de forma artificial. Por eso este adaptador
+filtra explícitamente `split == "test"` antes de agregar; usar el CSV
+completo (train 2022-2024 incluido) repetiría exactamente el sesgo que esa
+regla existe para prevenir en los notebooks — solo que aquí, al ser código
+de prototipo y no notebook, no hay ninguna guardia que lo detecte.
 
 Se carga y valida UNA sola vez en el lifespan (ver app/main.py) — correr el
-modelo sobre 676,504 filas por request sería un desperdicio, además de
-arriesgar latencia; se cachea igual que el resto de los artefactos.
+modelo sobre cientos de miles de filas por request sería un desperdicio,
+además de arriesgar latencia; se cachea igual que el resto de los
+artefactos.
 
 CRÍTICO: este adaptador nunca reimplementa la inferencia. Recibe un
 `PredictorFrecuenciaPort` ya construido y validado (`XGBoostFrecuenciaAdapter`
@@ -33,7 +44,10 @@ _COLUMNAS_REQUERIDAS = {
     "pct_urbano",
     "poblacion_baja",
     "log_exposicion_v2",
+    "split",
 }
+
+_PARTICION_DIAGNOSTICO = "test"
 
 
 class ComparacionHistoricaRepositoryError(RuntimeError):
@@ -78,6 +92,9 @@ class ComparacionHistoricaAdapter:
                 )
 
             for fila in lector:
+                if fila["split"] != _PARTICION_DIAGNOSTICO:
+                    continue
+
                 codigo = fila["distrito_key"]
                 idx = indice_por_distrito.get(codigo)
                 if idx is None:

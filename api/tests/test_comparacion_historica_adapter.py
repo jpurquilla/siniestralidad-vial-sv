@@ -1,6 +1,14 @@
 """Tests del adaptador de comparación histórica (observado real vs. predicho
 por el modelo de NB07, agregados por distrito sobre matriz_frecuencia_v2.csv).
 
+Regla D1 de NB08 (exigir_particion_de_diagnostico): el conjunto de prueba es
+la única fuente válida para reportar una métrica de desempeño — nunca se
+mezcla con train, porque el modelo ya vio esas filas al entrenar y eso infla
+la calibración/Spearman de forma artificial. matriz_frecuencia_v2.csv trae
+una columna `split` (train=2022-2024, test=2025-2026); este adaptador debe
+filtrar a `split == "test"` antes de agregar, igual que NB08 exige en los
+notebooks.
+
 Dos niveles: la lógica de agregación se prueba con un predictor falso (rápido,
 sin tocar el modelo real); un test de integración aparte corre el modelo REAL
 sobre el histórico completo y verifica que el total predicho quede en el
@@ -31,16 +39,17 @@ class PredictorFalsoUnoPorFila:
 
 
 @pytest.fixture(scope="module")
-def total_filas_por_distrito() -> dict[str, int]:
+def total_filas_test_por_distrito() -> dict[str, int]:
     conteo: dict[str, int] = {}
     with settings.ruta_matriz_frecuencia.open(encoding="utf-8") as fh:
         for fila in csv.DictReader(fh):
-            conteo[fila["distrito_key"]] = conteo.get(fila["distrito_key"], 0) + 1
+            if fila["split"] == "test":
+                conteo[fila["distrito_key"]] = conteo.get(fila["distrito_key"], 0) + 1
     return conteo
 
 
 class TestAgregacionConPredictorFalso:
-    def test_observado_coincide_con_suma_real_de_n_siniestros(self):
+    def test_observado_coincide_con_suma_de_n_siniestros_solo_en_test(self):
         adapter = ComparacionHistoricaAdapter(settings.ruta_matriz_frecuencia, PredictorFalsoUnoPorFila())
         adapter.cargar_y_validar()
         resultado = {c.distrito_codigo: c for c in adapter.por_distrito()}
@@ -48,26 +57,39 @@ class TestAgregacionConPredictorFalso:
         observado_esperado_san_salvador = 0.0
         with settings.ruta_matriz_frecuencia.open(encoding="utf-8") as fh:
             for fila in csv.DictReader(fh):
-                if fila["distrito_key"] == "san salvador":
+                if fila["distrito_key"] == "san salvador" and fila["split"] == "test":
                     observado_esperado_san_salvador += float(fila["n_siniestros"])
 
         assert resultado["san salvador"].observado == pytest.approx(
             observado_esperado_san_salvador, rel=1e-9
         )
 
-    def test_predicho_es_una_fila_por_conteo_con_predictor_falso(self, total_filas_por_distrito):
+    def test_predicho_es_una_fila_por_conteo_con_predictor_falso(self, total_filas_test_por_distrito):
         adapter = ComparacionHistoricaAdapter(settings.ruta_matriz_frecuencia, PredictorFalsoUnoPorFila())
         adapter.cargar_y_validar()
         resultado = {c.distrito_codigo: c for c in adapter.por_distrito()}
 
         assert resultado["san salvador"].predicho == pytest.approx(
-            total_filas_por_distrito["san salvador"], rel=1e-9
+            total_filas_test_por_distrito["san salvador"], rel=1e-9
         )
 
     def test_hay_103_distritos(self):
         adapter = ComparacionHistoricaAdapter(settings.ruta_matriz_frecuencia, PredictorFalsoUnoPorFila())
         adapter.cargar_y_validar()
         assert len(adapter.por_distrito()) == 103
+
+    def test_nunca_agrega_filas_de_train(self, total_filas_test_por_distrito):
+        """Regresión directa de la regla D1 (NB08): si alguien vuelve a leer
+        el CSV completo sin filtrar por split, el total de filas agregadas
+        se dispara a 676,504 (train 451,552 + test 224,952) en vez de
+        quedarse en las 224,952 de la partición de prueba."""
+        adapter = ComparacionHistoricaAdapter(settings.ruta_matriz_frecuencia, PredictorFalsoUnoPorFila())
+        adapter.cargar_y_validar()
+
+        total_test = sum(total_filas_test_por_distrito.values())
+        predicho_total = sum(c.predicho for c in adapter.por_distrito())
+        assert predicho_total == pytest.approx(total_test, rel=1e-9)
+        assert predicho_total < 676_504
 
 
 class TestIntegracionConModeloReal:
