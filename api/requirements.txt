@@ -1,0 +1,24 @@
+# ============================================================
+# Reutilizadas del proyecto raíz (mismas versiones pinneadas en
+# requirements.txt) — el adaptador del modelo depende de que xgboost sea
+# exactamente esta versión para poder deserializar los .pkl con joblib.
+# ============================================================
+numpy==1.26.4
+pandas==2.2.2
+xgboost==2.1.1           # requiere OpenMP en el sistema: en macOS, `brew install libomp`
+openpyxl==3.1.5          # feriados_elsalvador_2022_2026.xlsx
+joblib==1.5.3            # joblib.load() de los .pkl (ya viene con scikit-learn en el proyecto raíz)
+
+# ============================================================
+# Framework web
+# ============================================================
+fastapi==0.141.1
+uvicorn[standard]==0.53.0
+pydantic==2.13.5
+pydantic-settings==2.15.0
+
+# ============================================================
+# Tests
+# ============================================================
+pytest==9.1.1
+httpx==0.28.1            # usado por fastapi.testclient.TestClient

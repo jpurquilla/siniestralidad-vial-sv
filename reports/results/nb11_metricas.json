@@ -1,0 +1,306 @@
+{
+  "notebook": "NB11_expansion_variables",
+  "dispersion_pearson_base": 1.007455179120095,
+  "devianza_validacion_base": 69161.67450459734,
+  "devianza_validacion_seleccionado": 61667.07156359262,
+  "vif": [
+    {
+      "pct_urbano": 2.588,
+      "pct_motocicletas": 5.911,
+      "crec_parque_12m": 2.986,
+      "pct_hogares_moto": 3.138,
+      "pct_hogares_auto": 4.077,
+      "pct_trabaja_otro_lugar": 2.213
+    },
+    {
+      "pct_urbano": 2.391,
+      "crec_parque_12m": 2.933,
+      "pct_hogares_moto": 1.745,
+      "pct_hogares_auto": 2.585,
+      "pct_trabaja_otro_lugar": 2.014
+    }
+  ],
+  "descartadas_vif": [
+    "pct_motocicletas"
+  ],
+  "pruebas": [
+    {
+      "bloque": "franja",
+      "gl": 3,
+      "LR_corregida": 8110.517194999472,
+      "p": 0.0,
+      "devianza_validacion": 64501.377504666954,
+      "mejora_validacion": 0.06738265135007108,
+      "p_holm": 0.0,
+      "significativo": true,
+      "mejora_suficiente": true,
+      "seleccionado": true
+    },
+    {
+      "bloque": "quincena",
+      "gl": 1,
+      "LR_corregida": 0.0027845323710241755,
+      "p": 0.9579162256528309,
+      "devianza_validacion": 69161.51333059403,
+      "mejora_validacion": 2.3303947520906666e-06,
+      "p_holm": 1.0,
+      "significativo": false,
+      "mejora_suficiente": false,
+      "seleccionado": false
+    },
+    {
+      "bloque": "fiesta_patronal",
+      "gl": 1,
+      "LR_corregida": 7.112776536325099,
+      "p": 0.007653647328150947,
+      "devianza_validacion": 69155.60690681037,
+      "mejora_validacion": 8.773063738596096e-05,
+      "p_holm": 0.02296094198445284,
+      "significativo": true,
+      "mejora_suficiente": false,
+      "seleccionado": false
+    },
+    {
+      "bloque": "crec_parque_12m",
+      "gl": 1,
+      "LR_corregida": 1628.255264996367,
+      "p": 0.0,
+      "devianza_validacion": 68669.8937245398,
+      "mejora_validacion": 0.007110596780372191,
+      "p_holm": 0.0,
+      "significativo": true,
+      "mejora_suficiente": true,
+      "seleccionado": true
+    },
+    {
+      "bloque": "pct_hogares_moto",
+      "gl": 1,
+      "LR_corregida": 135.6247424238969,
+      "p": 2.410387043799864e-31,
+      "devianza_validacion": 69231.0182930714,
+      "mejora_validacion": -0.001002633163103377,
+      "p_holm": 9.641548175199457e-31,
+      "significativo": true,
+      "mejora_suficiente": false,
+      "seleccionado": false
+    },
+    {
+      "bloque": "pct_hogares_auto",
+      "gl": 1,
+      "LR_corregida": 3338.336263235909,
+      "p": 0.0,
+      "devianza_validacion": 67141.04963431742,
+      "mejora_validacion": 0.029215962232747916,
+      "p_holm": 0.0,
+      "significativo": true,
+      "mejora_suficiente": true,
+      "seleccionado": true
+    },
+    {
+      "bloque": "pct_trabaja_otro_lugar",
+      "gl": 1,
+      "LR_corregida": 1602.3821875548401,
+      "p": 0.0,
+      "devianza_validacion": 67641.2076502046,
+      "mejora_validacion": 0.021984240047451007,
+      "p_holm": 0.0,
+      "significativo": true,
+      "mejora_suficiente": true,
+      "seleccionado": true
+    },
+    {
+      "bloque": "franja_x_finde",
+      "gl": 3,
+      "LR_corregida": 1.7222020311780895,
+      "p": 0.632009109075202,
+      "devianza_validacion": 64500.899902236975,
+      "mejora_validacion": 7.404530700828188e-06,
+      "p_holm": 1.0,
+      "significativo": false,
+      "mejora_suficiente": false,
+      "seleccionado": false
+    }
+  ],
+  "seleccionados": [
+    "franja",
+    "crec_parque_12m",
+    "pct_hogares_auto",
+    "pct_trabaja_otro_lugar"
+  ],
+  "razones_tasas": [
+    {
+      "variable": "es_lluviosa",
+      "razon_tasas": 0.9436357279158024,
+      "ic95_inf": 0.8893814227731202,
+      "ic95_sup": 1.0011996700164247,
+      "z": -1.920279113208095,
+      "p": 0.05482265319220289
+    },
+    {
+      "variable": "es_finde",
+      "razon_tasas": 1.0335149694749957,
+      "ic95_inf": NaN,
+      "ic95_sup": NaN,
+      "z": NaN,
+      "p": NaN
+    },
+    {
+      "variable": "periodo_agostino",
+      "razon_tasas": 1.3587755556142553,
+      "ic95_inf": 1.2409164634856742,
+      "ic95_sup": 1.4878286047948326,
+      "z": 6.622600225232278,
+      "p": 3.5293459855499394e-11
+    },
+    {
+      "variable": "es_feriado",
+      "razon_tasas": 1.1450067730971132,
+      "ic95_inf": 1.0728961495150484,
+      "ic95_sup": 1.2219640372750502,
+      "z": 4.080005860520314,
+      "p": 4.5034565370976844e-05
+    },
+    {
+      "variable": "prcp_mensual",
+      "razon_tasas": 1.0009380839998667,
+      "ic95_inf": 1.00064282210075,
+      "ic95_sup": 1.0012334330225676,
+      "z": 6.229051746661144,
+      "p": 4.692667863753446e-10
+    },
+    {
+      "variable": "pct_urbano",
+      "razon_tasas": 2.2636287345819013,
+      "ic95_inf": 1.4310684917679575,
+      "ic95_sup": 3.5805519285066474,
+      "z": 3.491959044389407,
+      "p": 0.0004794917625523667
+    },
+    {
+      "variable": "poblacion_baja",
+      "razon_tasas": 1.100359081535603,
+      "ic95_inf": 0.7112310021380255,
+      "ic95_sup": 1.7023865729673346,
+      "z": 0.4295292266648466,
+      "p": 0.6675381291718276
+    },
+    {
+      "variable": "crec_parque_12m",
+      "razon_tasas": 23.414492372305233,
+      "ic95_inf": 2.0848554926676304,
+      "ic95_sup": 262.96232759578635,
+      "z": 2.555329706093646,
+      "p": 0.010608725737177466
+    },
+    {
+      "variable": "pct_hogares_auto",
+      "razon_tasas": 25.35972536357706,
+      "ic95_inf": 9.176028925115245,
+      "ic95_sup": 70.0864912005469,
+      "z": 6.233604747416941,
+      "p": 4.5582231703349393e-10
+    },
+    {
+      "variable": "pct_trabaja_otro_lugar",
+      "razon_tasas": 0.41310588602596493,
+      "ic95_inf": 0.24656098497422313,
+      "ic95_sup": 0.6921471095158827,
+      "z": -3.357347391558989,
+      "p": 0.0007869417160994233
+    },
+    {
+      "variable": "dia_semana_1",
+      "razon_tasas": 0.9025932244687058,
+      "ic95_inf": 0.8672667759156583,
+      "ic95_sup": 0.9393586281414783,
+      "z": -5.030978252581938,
+      "p": 4.879835043389544e-07
+    },
+    {
+      "variable": "dia_semana_2",
+      "razon_tasas": 0.874661104889713,
+      "ic95_inf": 0.8393428650156216,
+      "ic95_sup": 0.9114654812639112,
+      "z": -6.368114473376899,
+      "p": 1.9136607541834313e-10
+    },
+    {
+      "variable": "dia_semana_3",
+      "razon_tasas": 0.932788437312775,
+      "ic95_inf": 0.9005800788649375,
+      "ic95_sup": 0.9661486959394527,
+      "z": -3.8807834425392502,
+      "p": 0.00010412052161939413
+    },
+    {
+      "variable": "dia_semana_4",
+      "razon_tasas": 1.0010711688913054,
+      "ic95_inf": 0.0,
+      "ic95_sup": Infinity,
+      "z": 6.050171830535872e-10,
+      "p": 0.9999999995172661
+    },
+    {
+      "variable": "dia_semana_5",
+      "razon_tasas": 1.0324090849802507,
+      "ic95_inf": 0.0,
+      "ic95_sup": Infinity,
+      "z": 9.792088562726707e-09,
+      "p": 0.9999999921870437
+    },
+    {
+      "variable": "dia_semana_6",
+      "razon_tasas": 0.9163038105846883,
+      "ic95_inf": 0.882922397065409,
+      "ic95_sup": 0.9509473041828613,
+      "z": -4.616331621011915,
+      "p": 3.9058264316561005e-06
+    },
+    {
+      "variable": "franja_cod_1",
+      "razon_tasas": 3.9755822689699274,
+      "ic95_inf": 3.817168219750773,
+      "ic95_sup": 4.140570566308449,
+      "z": 66.52552408356283,
+      "p": 0.0
+    },
+    {
+      "variable": "franja_cod_2",
+      "razon_tasas": 4.951164537940662,
+      "ic95_inf": 4.729957893979732,
+      "ic95_sup": 5.182716385903247,
+      "z": 68.59423733190746,
+      "p": 0.0
+    },
+    {
+      "variable": "franja_cod_3",
+      "razon_tasas": 3.5484598046581954,
+      "ic95_inf": 3.3955312344377013,
+      "ic95_sup": 3.708276000400284,
+      "z": 56.347968836673665,
+      "p": 0.0
+    }
+  ],
+  "calibracion_por_franja_validacion": [
+    {
+      "franja": "Madrugada (00-05)",
+      "calibracion_base": 3.5081068867661584,
+      "calibracion_seleccionado": 1.0039477661264817
+    },
+    {
+      "franja": "Manana (06-11)",
+      "calibracion_base": 0.8923100291741,
+      "calibracion_seleccionado": 1.0152075053385274
+    },
+    {
+      "franja": "Tarde (12-17)",
+      "calibracion_base": 0.7040330848904056,
+      "calibracion_seleccionado": 0.9975593147517049
+    },
+    {
+      "franja": "Noche (18-23)",
+      "calibracion_base": 1.0141508768065184,
+      "calibracion_seleccionado": 1.0298660960593573
+    }
+  ]
+}

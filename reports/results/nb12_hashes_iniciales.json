@@ -1,0 +1,16 @@
+{
+  "notebook": "NB12_modelo_final_ampliado",
+  "generado": "2026-11-01T16:48:34",
+  "hashes": {
+    "matriz_frecuencia_v3": "88ba5d74018193d292bb417a2506a7a91be2364d4f3bcea4d6803b515525ddc2",
+    "nb07_especificacion": "765ff7b9aaff0a8673de3a21f888479b5351004e0f921607ae7fb1749bb9c04f",
+    "nb07_metricas": "cf0775a94cbe6917f50df75632358efa48c961d6bfc5ebb3fd82c6548425fa01",
+    "nb11_especificacion": "7c300f5689eeea86e4d0be2eee47901f3c2685ce271d63291448198e67c70339",
+    "nb11_metricas": "00c4dab03466136b736fbe4b84d8fcf5da7237dec3d8b7ebed79fd0ec4b92dc2",
+    "xgb_offset_v2": "48ec3fbe118da55e42919dc5368b2c4d78185aa596918bbd5df9db41988e109c",
+    "nb08_seccion6": "b9fc75a436591fcedd1ce5ec4ccc0a0ae3d8f158aa86af3b72b9115d829ee34d",
+    "siniestros": "7517926c49e5c93e4945d98771041c62ab7bcfefa6bd0cbdc809cecf00da3703",
+    "estaciones": "e4a09534f3e229d244c742410c6e09de37eb82dcb93d6ccfe2ef8ce17f152f61",
+    "distritos_geo": "6d4118441d541b5e8fcabedf0e41b9044521bba3584c7623b607585819f949f4"
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "notebook": "NB07_optimizacion_modelos_avanzados",
+  "generado": "2026-09-15T00:18:28",
+  "seed": 42,
+  "matriz": "matriz_frecuencia_v2.csv",
+  "offset": "log_exposicion_v2",
+  "split": {
+    "train": "2022-01-01 a 2024-12-31",
+    "test": "2025-01-01 a 2026-06-30",
+    "columna": "split"
+  },
+  "particion_interna": {
+    "proposito": "seleccion de hiperparametros sin usar el conjunto de prueba",
+    "ajuste": "2022-01-01 a 2023-12-31",
+    "validacion": "2024-01-01 a 2024-12-31",
+    "filas_ajuste": 300760,
+    "filas_validacion": 150792,
+    "nota": "La frontera train/test de NB03 no se altera."
+  },
+  "funcion_objetivo": {
+    "formula": "RMSE * (1 + lambda * |ln(calibracion)|)",
+    "lambda": 1.0,
+    "justificacion": "Simetria en escala logaritmica, penalizacion adimensional y dominancia de la calibracion sobre el RMSE, conforme a la jerarquia de NB05 Seccion 10.1.",
+    "metrica_excluida": "MAE: premia la subestimacion con 89.7% de ceros"
+  },
+  "modelos": {
+    "frecuencia_xgboost_v2.pkl": {
+      "algoritmo": "XGBoost Booster (objective count:poisson)",
+      "tratamiento_exposicion": "variable predictora (novena columna)",
+      "columnas": [
+        "es_lluviosa",
+        "es_finde",
+        "dia_semana",
+        "periodo_agostino",
+        "es_feriado",
+        "prcp_mensual",
+        "pct_urbano",
+        "poblacion_baja",
+        "log_exposicion"
+      ],
+      "codificacion_dia_semana": "cat.codes con categorias fijadas por train",
+      "hiperparametros": {
+        "max_depth": 7,
+        "eta": 0.022980322436920667,
+        "min_child_weight": 4.1819808863238395,
+        "subsample": 0.6647128352861895,
+        "colsample_bytree": 0.9648733441409053,
+        "reg_lambda": 18.533300337940506,
+        "reg_alpha": 0.0012241751547850835,
+        "gamma": 1.8803039672759174
+      },
+      "n_rondas": 403,
+      "carga": "joblib.load -> Booster; predecir con xgb.DMatrix(columnas)"
+    },
+    "frecuencia_xgboost_offset_v2.pkl": {
+      "algoritmo": "XGBoost Booster (objective count:poisson)",
+      "tratamiento_exposicion": "offset via base_margin",
+      "columnas": [
+        "es_lluviosa",
+        "es_finde",
+        "dia_semana",
+        "periodo_agostino",
+        "es_feriado",
+        "prcp_mensual",
+        "pct_urbano",
+        "poblacion_baja"
+      ],
+      "codificacion_dia_semana": "cat.codes con categorias fijadas por train",
+      "base_margin": "log_exposicion_v2 + log_tasa_base",
+      "log_tasa_base": -12.936335060885538,
+      "advertencia": "Sin log_tasa_base las predicciones se desvian varios ordenes de magnitud. No esta dentro del objeto.",
+      "hiperparametros": {
+        "max_depth": 3,
+        "eta": 0.14739737905025435,
+        "min_child_weight": 3.107307081040582,
+        "subsample": 0.9027973829209696,
+        "colsample_bytree": 0.8266402508612634,
+        "reg_lambda": 0.05447376552281462,
+        "reg_alpha": 0.15327711933776367,
+        "gamma": 0.0012798882323709277
+      },
+      "n_rondas": 338
+    },
+    "frecuencia_random_forest_nb07.pkl": {
+      "algoritmo": "RandomForestRegressor regularizado",
+      "tratamiento_exposicion": "variable predictora (novena columna)",
+      "columnas": [
+        "es_lluviosa",
+        "es_finde",
+        "dia_semana",
+        "periodo_agostino",
+        "es_feriado",
+        "prcp_mensual",
+        "pct_urbano",
+        "poblacion_baja",
+        "log_exposicion"
+      ],
+      "hiperparametros": {
+        "n_estimators": 200,
+        "max_depth": null,
+        "min_samples_leaf": 20,
+        "random_state": 42
+      }
+    },
+    "frecuencia_zip_v2.pkl": {
+      "algoritmo": "ZeroInflatedPoisson (statsmodels, inflation=logit)",
+      "tratamiento_exposicion": "offset",
+      "columnas_conteo": [
+        "const",
+        "es_lluviosa",
+        "es_finde",
+        "periodo_agostino",
+        "es_feriado",
+        "prcp_mensual",
+        "pct_urbano",
+        "poblacion_baja",
+        "dia_semana_1",
+        "dia_semana_2",
+        "dia_semana_3",
+        "dia_semana_4",
+        "dia_semana_5",
+        "dia_semana_6"
+      ],
+      "columnas_inflacion": [
+        "const",
+        "pct_urbano",
+        "poblacion_baja"
+      ],
+      "especificacion_inflacion": "territorial",
+      "remove_data": true,
+      "ajuste": "Nelder-Mead seguido de BFGS"
+    },
+    "frecuencia_zinb_v2.pkl": {
+      "algoritmo": "ZeroInflatedNegativeBinomialP p=2 (statsmodels)",
+      "tratamiento_exposicion": "offset",
+      "columnas_conteo": [
+        "const",
+        "es_lluviosa",
+        "es_finde",
+        "periodo_agostino",
+        "es_feriado",
+        "prcp_mensual",
+        "pct_urbano",
+        "poblacion_baja",
+        "dia_semana_1",
+        "dia_semana_2",
+        "dia_semana_3",
+        "dia_semana_4",
+        "dia_semana_5",
+        "dia_semana_6"
+      ],
+      "columnas_inflacion": [
+        "const",
+        "pct_urbano",
+        "poblacion_baja"
+      ],
+      "especificacion_inflacion": "territorial",
+      "alpha_estimado": 0.35839586975500254,
+      "remove_data": true,
+      "ajuste": "Nelder-Mead seguido de BFGS"
+    }
+  },
+  "estudio_optuna": {
+    "almacen": "reports/results/nb07_optuna.db",
+    "estudios": [
+      "nb07_xgb_feature",
+      "nb07_xgb_offset"
+    ],
+    "muestreador": "TPESampler(seed=42)",
+    "ensayos_por_estudio": 40,
+    "reanudable": true
+  }
+}

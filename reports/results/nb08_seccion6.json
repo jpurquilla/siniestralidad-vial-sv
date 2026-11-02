@@ -1,0 +1,129 @@
+{
+  "rango_test": "2025-01-01 a 2026-06-30",
+  "filas_test": 224952,
+  "usos_del_test": [
+    {
+      "n": 1,
+      "notebook": "NB07",
+      "celda": "—",
+      "proposito": "Evaluacion del modelo seleccionado",
+      "decide": true
+    },
+    {
+      "n": 2,
+      "notebook": "NB08",
+      "celda": "1.3",
+      "proposito": "Reproduccion de metricas ya publicadas",
+      "decide": false
+    },
+    {
+      "n": 3,
+      "notebook": "NB08",
+      "celda": "2.1-2.5",
+      "proposito": "Contraste descriptivo junto al diagnostico",
+      "decide": false
+    },
+    {
+      "n": 4,
+      "notebook": "NB08",
+      "celda": "5.2",
+      "proposito": "Contraste de las brechas por subgrupo",
+      "decide": false
+    },
+    {
+      "n": 5,
+      "notebook": "NB08",
+      "celda": "6.2",
+      "proposito": "Confirmacion de las conclusiones",
+      "decide": false
+    }
+  ],
+  "accesos_decisorios_totales": 1,
+  "accesos_decisorios_nb08": 0,
+  "conclusiones_a_confirmar": {
+    "C1_caida_no_real": {
+      "enunciado": "La caida del tercil medio no se distingue del ruido de muestreo.",
+      "establecida_en": "Seccion 2 (bootstrap pareado, validacion 2024)",
+      "evidencia": {
+        "diferencia": 0.023689440201918877,
+        "ic": [
+          -0.22262838397483536,
+          0.24974420561127791
+        ]
+      }
+    },
+    "C2_metrica_mide_el_ancho": {
+      "enunciado": "El Spearman por subgrupo mide el ancho del tercil antes que la capacidad del modelo.",
+      "establecida_en": "Secciones 2.5 y 3.2",
+      "evidencia": {
+        "variacion_por_corte": 0.35000756900247654,
+        "variacion_por_modelo": 0.11263946728267249
+      }
+    },
+    "C3_sesgo_rural": {
+      "enunciado": "Hay subestimacion de calibracion en los distritos mas rurales, y es un fenomeno de extrapolacion, no un error constante de nivel.",
+      "establecida_en": "Seccion 5.2, reformulada en 4.3",
+      "evidencia": {
+        "calibracion_rural_validacion": 0.8563062196563257,
+        "factor_en_entrenamiento": 1.0021699986347476,
+        "factor_al_extrapolar": 1.167806481860594
+      }
+    }
+  },
+  "es_segunda_evaluacion": false,
+  "motivo": "El remedio de la Seccion 4 fue rechazado; no hay modelo nuevo que evaluar.",
+  "confirmacion": {
+    "C1_caida_no_real": {
+      "coherente": true,
+      "validacion": {
+        "diferencia": 0.023689440201918877,
+        "IC_inf": -0.22262838397483536,
+        "IC_sup": 0.24974420561127791
+      },
+      "test": {
+        "diferencia": 0.22762366630448505,
+        "IC_inf": 0.05675534936007384,
+        "IC_sup": 0.4681267326124052
+      },
+      "nota": "La diferencia del test incluye la ventaja de memoria del RF de Etapa 1 (exposicion como variable, entreno 2022-2024)."
+    },
+    "C2_metrica_mide_el_ancho": {
+      "coherente": true,
+      "variacion_corte_test": 0.5316852550916299,
+      "variacion_modelo_test": 0.22762366630448505
+    },
+    "C3_sesgo_rural": {
+      "coherente": false,
+      "factores_por_ventana": {
+        "ajuste 2022-2023": {
+          "distancia_al_entrenamiento": "dentro",
+          "factor_rural": 1.0021699986347476,
+          "factor_resto": 0.9994777723684737,
+          "calibracion_rural": 0.9978347000631591
+        },
+        "validacion 2024": {
+          "distancia_al_entrenamiento": "1 anio",
+          "factor_rural": 1.167806481860594,
+          "factor_resto": 0.9985428881983721,
+          "calibracion_rural": 0.8563062592414813
+        },
+        "test 2025-2026": {
+          "distancia_al_entrenamiento": "1 a 2.5 anios",
+          "factor_rural": 1.1412499795042816,
+          "factor_resto": 1.0323992329456528,
+          "calibracion_rural": 0.8762322172696682
+        }
+      }
+    }
+  },
+  "metricas_test_publicadas": {
+    "MAE": 0.200749,
+    "RMSE": 0.412055,
+    "media_predicha": 0.145181,
+    "calibracion": 0.966979,
+    "spearman_global": 0.970777,
+    "spearman_tercil_alto": 0.977519,
+    "n_distritos": 103.0,
+    "n_tercil_alto": 35.0
+  }
+}

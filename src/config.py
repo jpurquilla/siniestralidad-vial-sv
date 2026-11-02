@@ -48,6 +48,11 @@ REPORTS_DIR = ROOT_DIR / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
 RESULTS_DIR = REPORTS_DIR / "results"  # métricas .json
 DOCS_DIR = ROOT_DIR / "docs"
+GEO_DIR = DATA_DIR / "geo"  # geometrías (GeoJSON)
+# Copias crudas de las fuentes web que no ofrecen archivo descargable
+# (respuestas del Power BI de ONASEVI, páginas consultadas para el calendario de fiestas).
+# Las generan los scripts de src/extraccion/; los notebooks no las leen.
+EXTRACCION_DIR = DATA_DIR / "fuente_original" / "extraccion"
 
 # Salidas: se crean si no existen. raw/ NO se crea (debe llenarse a mano).
 for _d in (PROCESSED_DIR, MODELS_DIR, FIGURES_DIR, RESULTS_DIR):
@@ -68,6 +73,27 @@ CENSO_FILE = RAW_DIR / "TAB_POB_AREA_1.xlsx"
 # Columnas: id, nombre, pais, region, latitud, longitud, elevacion, timezone.
 # Necesario en NB03 para el join "estación más cercana" a cada distrito.
 ESTACIONES_FILE = RAW_DIR / "Estaciones SLV.xlsx"
+
+# --- Fuentes externas de la etapa final -------------------------------------
+# Censo 2024 (BCR/ONEC), tabulados OFICIALES CRUDOS, mismo origen que CENSO_FILE:
+#   TAB_HOG_4: hogares según disponibilidad de automóvil, bicicleta y motocicleta.
+#   TAB_CE_5 : población ocupada según lugar de trabajo (pregunta P22).
+CENSO_BIENES_FILE = RAW_DIR / "TAB_HOG_4.xlsx"
+CENSO_TRABAJO_FILE = RAW_DIR / "TAB_CE_5.xlsx"
+
+# Parque vehicular (ONASEVI/FONAT, Registro Público de Vehículos). La fuente solo
+# publica un tablero Power BI: los dos CSV se extraen con
+# src/extraccion/parque_vehicular.py, sin transformar los valores.
+PARQUE_FILE = RAW_DIR / "parque_vehicular_onasevi.csv"
+PARQUE_CATALOGO_FILE = RAW_DIR / "parque_vehicular_catalogo_onasevi.csv"
+
+# Calendario de fiestas patronales por distrito 2022-2026, mismo formato que
+# FERIADOS_FILE (una fila por distrito y día). Compilado con src/extraccion/fiestas.py.
+FIESTAS_FILE = RAW_DIR / "fiestas_patronales_elsalvador_2022_2026.xlsx"
+
+# Polígonos OFICIALES de los 262 distritos (Geoportal BCR, capa «Población total
+# por distrito» del Censo 2024). No reemplaza a distritos.geojson (capa GADM).
+DISTRITOS_GEO_FILE = GEO_DIR / "distritos_censo2024.geojson"
 
 # Estaciones de clima: clave lógica -> subcarpeta dentro de clima/.
 # El cargador NO asume nombre de archivo: lee todos los .csv de la carpeta.
@@ -142,6 +168,11 @@ def load_censo() -> pd.DataFrame:
     Devuelve el nivel DISTRITO ya estructurado: 262 distritos con población
     total, urbana, rural y % urbano. Descarta los subtotales 'TOTAL', la fila
     'No Especificado' y la nota de fuente al pie del archivo.
+
+    La fila 'No Especificado' (107.055 personas: 94.112 hombres y 12.943 mujeres)
+    es la población privada de libertad, que el censo no asigna a ningún distrito.
+    Por eso la suma de los 262 distritos (5.922.921) es menor que el total
+    nacional (6.029.976).
 
     Esto es normalización de formato del archivo oficial (multi-encabezado,
     prefijos numéricos), no análisis. La coincidencia de nombres de distrito
@@ -294,6 +325,163 @@ def load_feriados() -> pd.DataFrame:
     return pd.read_excel(FERIADOS_FILE)
 
 
+# ---------------------------------------------------------------------------
+# 4.1 Cargadores de fuentes externas (etapa final)
+# ---------------------------------------------------------------------------
+def _quitar_prefijo(serie: pd.Series) -> pd.Series:
+    """Quita el prefijo numérico 'NN - ' (o 'NN- ') de los nombres del censo."""
+    return serie.astype(str).str.replace(r"^\d+\s*-\s*", "", regex=True).str.strip()
+
+
+def _filas_distrito(df: pd.DataFrame) -> pd.Series:
+    """Máscara de filas a nivel distrito en los tabulados del censo (misma regla que load_censo)."""
+    return (
+        df["distrito"].notna()
+        & (~df["distrito"].astype(str).str.contains("TOTAL", na=False))
+        & (df["departamento"].astype(str).str.match(r"^\d"))
+    )
+
+
+def load_censo_bienes() -> pd.DataFrame:
+    """
+    Censo 2024 (BCR/ONEC), tabla TAB_HOG_4: hogares por distrito según
+    disponibilidad de automóvil, bicicleta y motocicleta.
+
+    Devuelve 262 distritos con el total de hogares y, por bien, los hogares que
+    responden Sí / No / No sabe. Solo normaliza el formato (multi-encabezado,
+    prefijos numéricos); los porcentajes se calculan en el notebook.
+    Universo: hogares con información completa (1.890.571), según nota del tabulado.
+    """
+    if not CENSO_BIENES_FILE.exists():
+        raise FileNotFoundError(
+            f"No se encontró {CENSO_BIENES_FILE.name} en {RAW_DIR}."
+        )
+    df = pd.read_excel(CENSO_BIENES_FILE, header=None, skiprows=6)
+    df.columns = [
+        "departamento",
+        "municipio",
+        "distrito",
+        "tipo",
+        "hogares",
+        "automovil_si",
+        "automovil_no",
+        "automovil_ns",
+        "bicicleta_si",
+        "bicicleta_no",
+        "bicicleta_ns",
+        "motocicleta_si",
+        "motocicleta_no",
+        "motocicleta_ns",
+    ]
+    d = df[_filas_distrito(df) & (df["tipo"] == "Hogares")].copy()
+    num = [
+        c
+        for c in d.columns
+        if c not in ("departamento", "municipio", "distrito", "tipo")
+    ]
+    for c in num:
+        d[c] = pd.to_numeric(d[c], errors="coerce").fillna(0).astype(int)
+    for c in ["departamento", "municipio", "distrito"]:
+        d[c] = _quitar_prefijo(d[c])
+    return d.drop(columns="tipo").reset_index(drop=True)
+
+
+def load_censo_trabajo() -> pd.DataFrame:
+    """
+    Censo 2024 (BCR/ONEC), tabla TAB_CE_5: población de 10 años o más ocupada,
+    por distrito de residencia, según lugar de trabajo (pregunta P22:
+    '1. En este mismo lugar / municipio', '2. En otro lugar', '3. En otro país').
+
+    Devuelve 262 distritos (fila TOTAL de edad), totales por categoría.
+    El desglose por sexo y edad queda en el archivo crudo.
+    """
+    if not CENSO_TRABAJO_FILE.exists():
+        raise FileNotFoundError(
+            f"No se encontró {CENSO_TRABAJO_FILE.name} en {RAW_DIR}."
+        )
+    df = pd.read_excel(CENSO_TRABAJO_FILE, header=None, skiprows=6).iloc[:, 1:]
+    df.columns = [
+        "departamento",
+        "municipio",
+        "distrito",
+        "grupo_etario",
+        "mismo_lugar_h",
+        "mismo_lugar_m",
+        "mismo_lugar",
+        "otro_lugar_h",
+        "otro_lugar_m",
+        "otro_lugar",
+        "otro_pais_h",
+        "otro_pais_m",
+        "otro_pais",
+        "ns_nr_h",
+        "ns_nr_m",
+        "ns_nr",
+        "ocupados",
+    ]
+    d = df[_filas_distrito(df) & (df["grupo_etario"] == "TOTAL")].copy()
+    cols = ["ocupados", "mismo_lugar", "otro_lugar", "otro_pais", "ns_nr"]
+    for c in cols:
+        d[c] = pd.to_numeric(d[c], errors="coerce").fillna(0).astype(int)
+    for c in ["departamento", "municipio", "distrito"]:
+        d[c] = _quitar_prefijo(d[c])
+    return d[["departamento", "municipio", "distrito", *cols]].reset_index(drop=True)
+
+
+def load_parque_vehicular() -> pd.DataFrame:
+    """
+    Parque vehicular (ONASEVI/FONAT) por corte, distrito y clase de vehículo.
+    Cortes anuales (31-dic) 2015-2020 y mensuales desde enero de 2021.
+
+    Unifica la columna territorial, que cambió con la reforma municipal:
+      - cortes hasta 2024-10-31: el distrito viene en 'cod_mun' (262 antiguos municipios);
+      - cortes desde 2024-11-30: viene en 'cod_dis' (mismo espacio de códigos 101-1418).
+    En los cortes 2024-09 y 2024-10 'cod_mun' mezcla algunos códigos de municipio
+    nuevo; aquí se conservan y su tratamiento se decide en el notebook.
+    'cod_distrito' es el código del registro vehicular, no el del censo: el
+    cruce con los nombres del censo se hace en el notebook.
+    Se excluyen las filas sin código territorial en la fuente (~0,1% del parque).
+    """
+    if not PARQUE_FILE.exists():
+        raise FileNotFoundError(f"No se encontró {PARQUE_FILE.name} en {RAW_DIR}.")
+    df = pd.read_csv(PARQUE_FILE, parse_dates=["fecha_ref"])
+    nuevo = df["fecha_ref"] >= "2024-11-30"
+    df["cod_distrito"] = df["cod_mun"].where(~nuevo, df["cod_dis"]).astype("Int64")
+    df["cod_clase"] = df["cod_clase"].astype("Int64")
+    return (
+        df[["fecha_ref", "cod_distrito", "cod_clase", "vehiculos"]]
+        .dropna(subset=["cod_distrito"])
+        .reset_index(drop=True)
+    )
+
+
+def load_parque_catalogo() -> pd.DataFrame:
+    """Catálogo del registro vehicular: código, distrito y departamento (nombres abreviados del registro)."""
+    if not PARQUE_CATALOGO_FILE.exists():
+        raise FileNotFoundError(
+            f"No se encontró {PARQUE_CATALOGO_FILE.name} en {RAW_DIR}."
+        )
+    return pd.read_csv(PARQUE_CATALOGO_FILE)
+
+
+def load_fiestas() -> pd.DataFrame:
+    """Calendario de fiestas patronales por distrito 2022–2026 (una fila por distrito y día)."""
+    if not FIESTAS_FILE.exists():
+        raise FileNotFoundError(f"Falta {FIESTAS_FILE.name} en {RAW_DIR}.")
+    return pd.read_excel(FIESTAS_FILE)
+
+
+def load_distritos_geo() -> dict:
+    """GeoJSON oficial de los 262 distritos (EPSG:4326), como diccionario.
+    No requiere librerías geoespaciales."""
+    if not DISTRITOS_GEO_FILE.exists():
+        raise FileNotFoundError(
+            f"No se encontró {DISTRITOS_GEO_FILE.name} en {GEO_DIR}."
+        )
+    with open(DISTRITOS_GEO_FILE, encoding="utf-8") as f:
+        return json.load(f)
+
+
 def _clima_files(carpeta: Path) -> list[Path]:
     """Todos los .csv de una estación, ordenados (año asc si aplica)."""
     return sorted(carpeta.glob("*.csv"))
@@ -418,6 +606,12 @@ if __name__ == "__main__":
         "TAB_POB_AREA_1.xlsx (censo)": CENSO_FILE,
         "Estaciones SLV.xlsx": ESTACIONES_FILE,
         "feriados_*.xlsx": FERIADOS_FILE,
+        "TAB_HOG_4.xlsx (censo, bienes)": CENSO_BIENES_FILE,
+        "TAB_CE_5.xlsx (censo, lugar de trabajo)": CENSO_TRABAJO_FILE,
+        "parque_vehicular_onasevi.csv": PARQUE_FILE,
+        "parque_vehicular_catalogo_onasevi.csv": PARQUE_CATALOGO_FILE,
+        "fiestas_patronales_*.xlsx": FIESTAS_FILE,
+        "geo/distritos_censo2024.geojson": DISTRITOS_GEO_FILE,
     }
     for nombre, path in base.items():
         print(f"[{'OK ' if path.exists() else 'FALTA'}] {nombre}")

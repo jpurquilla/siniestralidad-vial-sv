@@ -1,0 +1,52 @@
+{
+  "generado": "2026-09-15T10:09:22",
+  "criterio": {
+    "problema": "Subestimacion de calibracion en distritos rurales (L1)",
+    "magnitud_detectada": {
+      "calibracion_rural": 0.8563062196563257,
+      "n_distritos": 19,
+      "umbral_pct_urbano": 0.3
+    },
+    "remedio": "Factor multiplicativo unico para el grupo rural, estimado como sum(observado)/sum(predicho) sobre la particion de ajuste 2022-2023.",
+    "por_que_es_seguro": "Un factor unico por grupo no reordena distritos dentro del grupo (multiplica a todos por lo mismo): no puede inflar el Spearman.",
+    "estimacion": "particion de ajuste (2022-2023)",
+    "validacion": "validacion 2024",
+    "condiciones": {
+      "1_mejora_rural": {
+        "metrica": "|calibracion_rural - 1|",
+        "regla": "debe bajar al menos 0.05",
+        "umbral": 0.05
+      },
+      "2_calibracion_global": {
+        "metrica": "|calibracion_global - 1|",
+        "regla": "no empeora mas de 0.02",
+        "umbral": 0.02
+      },
+      "3_rmse_global": {
+        "metrica": "RMSE global",
+        "regla": "no empeora mas de 0.5%",
+        "umbral": 0.005
+      },
+      "4_ordenamiento": {
+        "metrica": "spearman global",
+        "regla": "no baja mas de 0.01",
+        "umbral": 0.01
+      }
+    },
+    "regla_de_decision": "Se acepta solo si se cumplen LAS CUATRO condiciones. Resultado en el limite -> indeterminado.",
+    "tension_con_nb05": {
+      "decision_previa": "Declarada como limitacion. Requiere fuentes externas.",
+      "que_sigue_vigente": [
+        "memoriza en vez de explicar",
+        "confunde siniestralidad con intensidad de reporte"
+      ],
+      "que_cambia": "NB05 evaluaba un efecto por distrito (103 parametros). Aqui se estima UN parametro para un grupo definido por una variable ya presente en el modelo: dos ordenes de magnitud menos de grados de libertad.",
+      "caracter": "revision acotada y consciente, no tecnica sin relacion con NB05"
+    },
+    "alternativas_descartadas": {
+      "efecto_aleatorio_por_distrito": "Es lo que NB05 rechazo: memoriza y no generaliza.",
+      "variables_osm": "Sin poligonos de distrito; el centroide se calculo con las coordenadas de los accidentes -> fuga circular. Linea futura.",
+      "modelo_en_dos_etapas": "Su proposito era el ordenamiento del tercil medio, que la Seccion 2 mostro que no esta roto."
+    }
+  }
+}

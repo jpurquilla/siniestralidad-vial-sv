@@ -1,0 +1,20 @@
+{
+  "notebook": "NB11_expansion_variables",
+  "generado": "2026-11-01T16:47:15",
+  "seed": 42,
+  "D1_particion": "Seleccion con ajuste 2022-2023 / validacion 2024. El test no se lee.",
+  "D2_instrumento": "Poisson con offset log_exposicion_v2 (especificacion de NB05).",
+  "D3_sobredispersion": "LR dividida por la dispersion de Pearson del modelo base; errores estandar agrupados por distrito.",
+  "D4_bloques": "Cada bloque contra el modelo base; la interaccion franja x fin de semana contra base + franja. Correccion de Holm.",
+  "D5_seleccion": {
+    "alfa_holm": 0.05,
+    "mejora_minima_devianza_validacion": 0.001
+  },
+  "D6_redundancia": {
+    "vif_max": 5.0,
+    "nivel": "distrito (103)",
+    "protegida": "pct_urbano"
+  },
+  "D7_parque": "Corte del mes anterior; codigos de transicion fuera de catalogo excluidos.",
+  "D8_fiestas": "San Salvador excluido (cubierto por periodo_agostino y es_feriado)."
+}

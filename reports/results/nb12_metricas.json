@@ -1,0 +1,373 @@
+{
+  "notebook": "NB12_modelo_final_ampliado",
+  "validacion": {
+    "comparacion": {
+      "gemelo NB07": {
+        "MAE": 0.1861656099589579,
+        "RMSE": 0.3869403211501104,
+        "media_predicha": 0.13460074706336758,
+        "calibracion": 0.9997889685818101,
+        "spearman_global": 0.9800464043366574,
+        "spearman_tercil_alto": 0.9607115367771353,
+        "objetivo": 0.3870219863321002
+      },
+      "ampliado": {
+        "MAE": 0.17949095757001743,
+        "RMSE": 0.36852433009943836,
+        "media_predicha": 0.13351455463907888,
+        "calibracion": 0.9917209360689614,
+        "spearman_global": 0.9550433153162119,
+        "spearman_tercil_alto": 0.9399817937470993,
+        "objetivo": 0.37158806659624216
+      }
+    },
+    "prueba_mensual": {
+      "n_meses": 12,
+      "dif_media_RMSE": 0.01838401094028988,
+      "t": 21.125855294376628,
+      "p_t": 2.967548426907642e-10,
+      "p_wilcoxon": 0.00048828125,
+      "meses_que_mejora": 12
+    },
+    "calibracion_por_franja": {
+      "gemelo NB07": {
+        "Madrugada (00-05)": 3.3426740442811265,
+        "Manana (06-11)": 0.850231099064804,
+        "Tarde (12-17)": 0.6708327867819606,
+        "Noche (18-23)": 0.9663262615156637
+      },
+      "ampliado": {
+        "Madrugada (00-05)": 1.4040779847558464,
+        "Manana (06-11)": 0.9847286111867459,
+        "Tarde (12-17)": 0.8886226208231425,
+        "Noche (18-23)": 1.028972532017711
+      }
+    },
+    "adoptado": true
+  },
+  "ablacion": [
+    {
+      "variable_quitada": "franja_cod",
+      "aumento_objetivo": 0.019623579076095465,
+      "ic95_inf": 0.015123859013463142,
+      "ic95_sup": 0.021757286252211013,
+      "aporta": true
+    },
+    {
+      "variable_quitada": "crec_parque_12m",
+      "aumento_objetivo": -0.0005739924681547603,
+      "ic95_inf": -0.001756160377083267,
+      "ic95_sup": 0.0011829146106297733,
+      "aporta": false
+    },
+    {
+      "variable_quitada": "pct_hogares_auto",
+      "aumento_objetivo": 0.00924974581342286,
+      "ic95_inf": -0.003509335076645308,
+      "ic95_sup": 0.013249709424186264,
+      "aporta": false
+    },
+    {
+      "variable_quitada": "pct_trabaja_otro_lugar",
+      "aumento_objetivo": 0.0066295081787947074,
+      "ic95_inf": -0.0032824942960423113,
+      "ic95_sup": 0.01098074286964189,
+      "aporta": false
+    }
+  ],
+  "prueba": {
+    "comparacion": {
+      "NB07": {
+        "MAE": 0.20074877509467065,
+        "RMSE": 0.41205520176527427,
+        "media_predicha": 0.14518097330321067,
+        "calibracion": 0.9669790462042946,
+        "spearman_global": 0.9707768053038996,
+        "spearman_tercil_alto": 0.9775194365312184,
+        "objetivo": 0.4258913778395094
+      },
+      "ampliado (NB12)": {
+        "MAE": 0.19389604999632395,
+        "RMSE": 0.3913483541087058,
+        "media_predicha": 0.1466189278098388,
+        "calibracion": 0.9765565538188802,
+        "spearman_global": 0.9453235478519486,
+        "spearman_tercil_alto": 0.9394215304219633,
+        "objetivo": 0.4006321606496934
+      }
+    },
+    "prueba_mensual": {
+      "n_meses": 18,
+      "dif_media_RMSE": 0.020606802523464432,
+      "t": 28.922734126920876,
+      "p_t": 6.725390641045566e-16,
+      "p_wilcoxon": 7.62939453125e-06,
+      "meses_que_mejora": 18
+    },
+    "diebold_mariano": {
+      "DM": 32.74070083382832,
+      "p": 4.118175672998339e-235,
+      "dias": 546,
+      "lags_newey_west": 7
+    },
+    "calibracion_por_franja": {
+      "NB07": {
+        "Madrugada (00-05)": 3.3766284119106698,
+        "Manana (06-11)": 0.8142702204049067,
+        "Tarde (12-17)": 0.649227695610687,
+        "Noche (18-23)": 0.9327873300582658
+      },
+      "ampliado": {
+        "Madrugada (00-05)": 1.4048944036264475,
+        "Manana (06-11)": 0.9647984621210233,
+        "Tarde (12-17)": 0.883054932261848,
+        "Noche (18-23)": 1.0060383315006283
+      }
+    }
+  },
+  "registro_test": {
+    "usos_del_test": [
+      {
+        "n": 1,
+        "notebook": "NB07",
+        "celda": "—",
+        "proposito": "Evaluacion del modelo seleccionado",
+        "decide": true
+      },
+      {
+        "n": 2,
+        "notebook": "NB08",
+        "celda": "1.3",
+        "proposito": "Reproduccion de metricas ya publicadas",
+        "decide": false
+      },
+      {
+        "n": 3,
+        "notebook": "NB08",
+        "celda": "2.1-2.5",
+        "proposito": "Contraste descriptivo junto al diagnostico",
+        "decide": false
+      },
+      {
+        "n": 4,
+        "notebook": "NB08",
+        "celda": "5.2",
+        "proposito": "Contraste de las brechas por subgrupo",
+        "decide": false
+      },
+      {
+        "n": 5,
+        "notebook": "NB08",
+        "celda": "6.2",
+        "proposito": "Confirmacion de las conclusiones",
+        "decide": false
+      },
+      {
+        "n": 6,
+        "notebook": "NB12",
+        "celda": "4.1",
+        "proposito": "Evaluación del modelo ampliado",
+        "decide": true
+      },
+      {
+        "n": 7,
+        "notebook": "NB12",
+        "celda": "1.3",
+        "proposito": "Reproducción de métricas publicadas de NB07",
+        "decide": false
+      },
+      {
+        "n": 8,
+        "notebook": "NB12",
+        "celda": "7.3",
+        "proposito": "Evaluación de la variante base + franja",
+        "decide": true
+      }
+    ],
+    "accesos_decisorios_totales": 3
+  },
+  "importancia_shap": {
+    "franja_cod": 0.3337194323539734,
+    "pct_hogares_auto": 0.1743130385875702,
+    "pct_urbano": 0.15484707057476044,
+    "pct_trabaja_otro_lugar": 0.06529343873262405,
+    "prcp_mensual": 0.03391336277127266,
+    "crec_parque_12m": 0.0199812650680542,
+    "es_finde": 0.016191763803362846,
+    "poblacion_baja": 0.010763506405055523,
+    "dia_semana": 0.00541438814252615,
+    "es_lluviosa": 0.00470837252214551,
+    "periodo_agostino": 0.002928877482190728,
+    "es_feriado": 0.0015079195145517588
+  },
+  "equidad": {
+    "validación 2024 | resto": {
+      "NB07": 1.0022849613977038,
+      "ampliado": 0.9882484482315637
+    },
+    "validación 2024 | rural (pct_urbano < 0.3)": {
+      "NB07": 0.8591442215914107,
+      "ampliado": 1.1873841366525424
+    },
+    "prueba 2025-2026 | resto": {
+      "NB07": 0.968617534853052,
+      "ampliado": 0.9724597894687265
+    },
+    "prueba 2025-2026 | rural (pct_urbano < 0.3)": {
+      "NB07": 0.8762322172696682,
+      "ampliado": 1.2034501472180197
+    }
+  },
+  "sensibilidad_estaciones": {
+    "distritos": 103,
+    "sin_poligono": [],
+    "reproduce_nb03": 103,
+    "cambiarian_de_estacion": 6,
+    "pct_siniestros_afectados": 0.03206368265403687,
+    "km_mediana": 3.317035667340774,
+    "km_max": 39.69660695533876
+  },
+  "variante_base_franja": {
+    "validacion": {
+      "comparacion": {
+        "gemelo NB07": {
+          "MAE": 0.1861656099589579,
+          "RMSE": 0.3869403211501104,
+          "media_predicha": 0.13460074706336758,
+          "calibracion": 0.9997889685818101,
+          "spearman_global": 0.9800464043366574,
+          "spearman_tercil_alto": 0.9607115367771353,
+          "objetivo": 0.3870219863321002
+        },
+        "ampliado": {
+          "MAE": 0.17949095757001743,
+          "RMSE": 0.36852433009943836,
+          "media_predicha": 0.13351455463907888,
+          "calibracion": 0.9917209360689614,
+          "spearman_global": 0.9550433153162119,
+          "spearman_tercil_alto": 0.9399817937470993,
+          "objetivo": 0.37158806659624216
+        },
+        "base + franja": {
+          "MAE": 0.17779317870131586,
+          "RMSE": 0.3684467024608876,
+          "media_predicha": 0.1345182407016891,
+          "calibracion": 0.9991761268848385,
+          "spearman_global": 0.959447549314542,
+          "spearman_tercil_alto": 0.9269556714376851,
+          "objetivo": 0.368750380906853
+        }
+      },
+      "prueba_mensual": {
+        "n_meses": 12,
+        "dif_media_RMSE": 0.01846243089368316,
+        "t": 38.87781818326024,
+        "p_t": 3.947636414490177e-13,
+        "p_wilcoxon": 0.00048828125,
+        "meses_que_mejora": 12
+      },
+      "calibracion": {
+        "gemelo NB07": {
+          "Madrugada (00-05)": 3.3426740442811265,
+          "Manana (06-11)": 0.850231099064804,
+          "Tarde (12-17)": 0.6708327867819606,
+          "Noche (18-23)": 0.9663262615156637,
+          "resto": 1.0022849613977038,
+          "rural (pct_urbano < 0.3)": 0.8591442215914107
+        },
+        "ampliado": {
+          "Madrugada (00-05)": 1.4040779847558464,
+          "Manana (06-11)": 0.9847286111867459,
+          "Tarde (12-17)": 0.8886226208231425,
+          "Noche (18-23)": 1.028972532017711,
+          "resto": 0.9882484482315637,
+          "rural (pct_urbano < 0.3)": 1.1873841366525424
+        },
+        "base + franja": {
+          "Madrugada (00-05)": 1.0189224263267869,
+          "Manana (06-11)": 1.0076529577014912,
+          "Tarde (12-17)": 0.9661203562929667,
+          "Noche (18-23)": 1.0314499247167206,
+          "resto": 1.001216994566852,
+          "rural (pct_urbano < 0.3)": 0.884179411634887
+        }
+      },
+      "D8": {
+        "a": true,
+        "b": false,
+        "c": true
+      },
+      "adoptada": false
+    },
+    "prueba": {
+      "comparacion": {
+        "NB07": {
+          "MAE": 0.20074877509467065,
+          "RMSE": 0.41205520176527427,
+          "media_predicha": 0.14518097330321067,
+          "calibracion": 0.9669790462042946,
+          "spearman_global": 0.9707768053038996,
+          "spearman_tercil_alto": 0.9775194365312184,
+          "objetivo": 0.4258913778395094
+        },
+        "ampliado": {
+          "MAE": 0.19389604999632395,
+          "RMSE": 0.3913483541087058,
+          "media_predicha": 0.1466189278098388,
+          "calibracion": 0.9765565538188802,
+          "spearman_global": 0.9453235478519486,
+          "spearman_tercil_alto": 0.9394215304219633,
+          "objetivo": 0.4006321606496934
+        },
+        "base + franja": {
+          "MAE": 0.19093970950103895,
+          "RMSE": 0.3900745598331844,
+          "media_predicha": 0.14517407040675168,
+          "calibracion": 0.9669330694066325,
+          "spearman_global": 0.9488710784482722,
+          "spearman_tercil_alto": 0.9394215304219633,
+          "objetivo": 0.4031912072169684
+        }
+      },
+      "prueba_mensual": {
+        "n_meses": 18,
+        "dif_media_RMSE": 0.0218615473765786,
+        "t": 26.372005942416724,
+        "p_t": 3.127904902040335e-15,
+        "p_wilcoxon": 7.62939453125e-06,
+        "meses_que_mejora": 18
+      },
+      "diebold_mariano": {
+        "DM": 29.428311481156573,
+        "p": 2.3857401886313823e-190
+      },
+      "calibracion": {
+        "NB07": {
+          "Madrugada (00-05)": 3.3766284119106698,
+          "Manana (06-11)": 0.8142702204049067,
+          "Tarde (12-17)": 0.649227695610687,
+          "Noche (18-23)": 0.9327873300582658,
+          "resto": 0.968617534853052,
+          "rural (pct_urbano < 0.3)": 0.8762322172696682
+        },
+        "ampliado": {
+          "Madrugada (00-05)": 1.4048944036264475,
+          "Manana (06-11)": 0.9647984621210233,
+          "Tarde (12-17)": 0.883054932261848,
+          "Noche (18-23)": 1.0060383315006283,
+          "resto": 0.9724597894687265,
+          "rural (pct_urbano < 0.3)": 1.2034501472180197
+        },
+        "base + franja": {
+          "Madrugada (00-05)": 1.0269849097265302,
+          "Manana (06-11)": 0.9624508943041289,
+          "Tarde (12-17)": 0.9449566945471533,
+          "Noche (18-23)": 0.9870533227893293,
+          "resto": 0.9682386845327807,
+          "rural (pct_urbano < 0.3)": 0.8946227517868323
+        }
+      }
+    }
+  },
+  "modelo_final": "ampliado"
+}

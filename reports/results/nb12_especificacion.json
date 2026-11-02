@@ -1,0 +1,72 @@
+{
+  "notebook": "NB12_modelo_final_ampliado",
+  "generado": "2026-11-01T19:35:23",
+  "matriz": "matriz_frecuencia_v3.csv.gz",
+  "modelo": "frecuencia_xgboost_offset_v3.pkl",
+  "algoritmo": "XGBoost Booster (objective count:poisson)",
+  "columnas": [
+    "es_lluviosa",
+    "es_finde",
+    "dia_semana",
+    "periodo_agostino",
+    "es_feriado",
+    "prcp_mensual",
+    "pct_urbano",
+    "poblacion_baja",
+    "franja_cod",
+    "crec_parque_12m",
+    "pct_hogares_auto",
+    "pct_trabaja_otro_lugar"
+  ],
+  "codificacion_dia_semana": "cat.codes con categorias fijadas por train",
+  "codificacion_franja": {
+    "Madrugada (00-05)": 0,
+    "Manana (06-11)": 1,
+    "Tarde (12-17)": 2,
+    "Noche (18-23)": 3
+  },
+  "base_margin": "log_exposicion_v2 + log_tasa_base",
+  "log_tasa_base": -12.936335060885538,
+  "advertencia": "Sin log_tasa_base las predicciones se desvian varios ordenes de magnitud. No esta dentro del objeto.",
+  "hiperparametros": {
+    "max_depth": 7,
+    "eta": 0.2903418144186964,
+    "min_child_weight": 14.762892868209374,
+    "subsample": 0.9522209703054583,
+    "colsample_bytree": 0.9957698141610928,
+    "reg_lambda": 0.06883002363559057,
+    "reg_alpha": 0.0004088623647120852,
+    "gamma": 0.4800201172272134
+  },
+  "n_rondas": 12,
+  "adoptado": true,
+  "modelo_final": "ampliado",
+  "variante_base_franja": {
+    "modelo": "frecuencia_xgboost_offset_v3_franja.pkl",
+    "columnas": [
+      "es_lluviosa",
+      "es_finde",
+      "dia_semana",
+      "periodo_agostino",
+      "es_feriado",
+      "prcp_mensual",
+      "pct_urbano",
+      "poblacion_baja",
+      "franja_cod"
+    ],
+    "base_margin": "log_exposicion_v2 + log_tasa_base",
+    "log_tasa_base": -12.936335060885538,
+    "hiperparametros": {
+      "max_depth": 4,
+      "eta": 0.13276781438405366,
+      "min_child_weight": 4.232815001252595,
+      "subsample": 0.7143047065330532,
+      "colsample_bytree": 0.8159783696174912,
+      "reg_lambda": 0.07774934576632006,
+      "reg_alpha": 0.009806776078307645,
+      "gamma": 0.00018802165385489836
+    },
+    "n_rondas": 142,
+    "adoptada": false
+  }
+}
