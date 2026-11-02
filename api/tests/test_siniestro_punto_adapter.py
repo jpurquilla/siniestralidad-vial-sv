@@ -75,9 +75,34 @@ class TestOpcionesFiltro:
     def test_incluye_los_5_tipos_de_siniestro_reales(self, adapter):
         opciones = adapter.opciones_filtro()
         assert set(opciones.tipos_siniestro) == {
-            "Colision", "Atropello", "Caracteristicas especiales",
+            "Colisión", "Atropello", "Características especiales",
             "Choque contra objeto fijo", "Volcamiento",
         }
+
+    def test_tipos_de_vehiculo_con_tildes(self, adapter):
+        opciones = adapter.opciones_filtro()
+        assert {"Automóvil", "Camión", "Motocicleta"} <= set(opciones.tipos_vehiculo)
+        assert "Automovil" not in opciones.tipos_vehiculo
+
+    def test_filtrar_por_la_opcion_con_tilde_encuentra_puntos(self, adapter):
+        puntos = adapter.buscar(FiltroSiniestros(tipo_vehiculo="Automóvil", tipo_siniestro="Colisión"))
+        assert puntos
+        assert all(p.tipo_vehiculo == "Automóvil" for p in puntos)
+
+    def test_nombre_de_distrito_con_tilde_si_se_inyecta_el_resolver(self, tmp_path):
+        csv_ = tmp_path / "s.csv"
+        csv_.write_text(
+            "id_siniestro;fecha;hora;franja_horaria;latitud;longitud;departamento;distrito;"
+            "tipo_siniestro;factor_causante;tipo_vehiculo;fallecidos;lesionados\n"
+            "X1;2025-01-01;10:00;Manana (06-11);13.9;-89.8;Ahuachapán;Ahuachapan;Colision;"
+            "Otros;Camion;0;1\n",
+            encoding="utf-8",
+        )
+        a = SiniestroPuntoAdapter(csv_, nombre_distrito=lambda d, dep: "Ahuachapán")
+        a.cargar_y_validar()
+        (punto,) = a.buscar(FiltroSiniestros())
+        assert punto.distrito == "Ahuachapán"
+        assert punto.tipo_vehiculo == "Camión"
 
 
 class TestArranqueFallido:

@@ -1,6 +1,6 @@
 """Adaptador de terciles: lee el agrupamiento fijo precomputado por
 api/scripts/generar_terciles.py (ver ese script para el protocolo, que
-replica NB07 §5.4)."""
+replica el protocolo de NB07 §5.4 con el modelo final NB12)."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class TercilRepositoryError(RuntimeError):
-    """terciles_nb07.json no existe o no tiene la forma esperada."""
+    """terciles_nb12.json no existe o no tiene la forma esperada."""
 
 
 class TercilRepository:
@@ -61,7 +61,7 @@ class TercilRepository:
         self._confiabilidad_por_tercil = confiabilidad_por_tercil
 
         logger.info(
-            "Terciles NB07 validados: %d distritos, confiabilidad=%s",
+            "Terciles NB12 validados: %d distritos, confiabilidad=%s",
             len(tercil_por_distrito),
             {t.value: v for t, v in confiabilidad_por_tercil.items()},
         )

@@ -1,5 +1,6 @@
 """Caso de uso: ranking de distritos por siniestros esperados en un rango de
-fechas, con su tercil (NB07 §5.4) y la confiabilidad de ese ordenamiento.
+fechas, con su tercil (protocolo NB07 §5.4, calculado con el modelo final NB12) y
+la confiabilidad descriptiva de ese ordenamiento.
 
 Python puro: orquesta los puertos del dominio, sin importar FastAPI, pandas
 ni xgboost.
@@ -17,6 +18,7 @@ from app.domain.ports import (
     ClimaRepositoryPort,
     DistritoRepositoryPort,
     ExposicionRepositoryPort,
+    ParqueRepositoryPort,
     PredictorFrecuenciaPort,
     TercilRepositoryPort,
 )
@@ -45,6 +47,7 @@ class RankingDistritos:
         clima: ClimaRepositoryPort,
         calendario_repo: CalendarioRepositoryPort,
         exposicion: ExposicionRepositoryPort,
+        parque: ParqueRepositoryPort,
         terciles: TercilRepositoryPort,
     ) -> None:
         self._predictor = predictor
@@ -52,6 +55,7 @@ class RankingDistritos:
         self._clima = clima
         self._calendario = calendario_repo
         self._exposicion = exposicion
+        self._parque = parque
         self._terciles = terciles
 
     def _features_de_distrito(
@@ -62,20 +66,27 @@ class RankingDistritos:
             prcp_mensual = self._clima.normal_climatologica(distrito.codigo, fecha.month)
             log_exposicion_v2 = self._exposicion.log_exposicion_v2(distrito.codigo, fecha)
             es_feriado = self._calendario.es_feriado(fecha, distrito.codigo)
-            fila = FeaturesCelda(
-                es_lluviosa=calendario.es_lluviosa(fecha),
-                es_finde=calendario.es_finde(fecha),
-                dia_semana=calendario.dia_semana(fecha),
-                periodo_agostino=calendario.periodo_agostino(fecha),
-                es_feriado=int(es_feriado),
-                prcp_mensual=prcp_mensual,
-                pct_urbano=distrito.pct_urbano,
-                poblacion_baja=int(distrito.poblacion_baja),
-                log_exposicion_v2=log_exposicion_v2,
-            )
-            # La misma fila se repite por cada franja: ver NB03 (log_exposicion
-            # y las 8 features no distinguen franja horaria, solo distrito+fecha).
-            filas.extend([fila] * len(franjas))
+            crec_parque_12m, _ = self._parque.crec_parque_12m(distrito.codigo, fecha)
+            # Una fila por franja: franja_cod hace que el modelo prediga
+            # distinto en cada una (el resto de las variables es de distrito+fecha).
+            for franja in franjas:
+                filas.append(
+                    FeaturesCelda(
+                        es_lluviosa=calendario.es_lluviosa(fecha),
+                        es_finde=calendario.es_finde(fecha),
+                        dia_semana=calendario.dia_semana(fecha),
+                        periodo_agostino=calendario.periodo_agostino(fecha),
+                        es_feriado=int(es_feriado),
+                        prcp_mensual=prcp_mensual,
+                        pct_urbano=distrito.pct_urbano,
+                        poblacion_baja=int(distrito.poblacion_baja),
+                        franja_cod=franja.codigo,
+                        crec_parque_12m=crec_parque_12m,
+                        pct_hogares_auto=distrito.pct_hogares_auto,
+                        pct_trabaja_otro_lugar=distrito.pct_trabaja_otro_lugar,
+                        log_exposicion_v2=log_exposicion_v2,
+                    )
+                )
         return filas
 
     def ejecutar(self, peticion: PeticionRanking) -> list[RankingDistrito]:

@@ -18,6 +18,10 @@ from app.domain.models import LetalidadPorEdad, RepartoTipoUsuario
 
 _GRUPO_SIN_VICTIMAS = "Sin victimas"
 
+# Nombre para mostrar (con tilde) de los grupos tal como vienen en la fuente.
+# La clave interna de la fuente no cambia; solo lo que se expone.
+_NOMBRE_PARA_MOSTRAR = {"Peaton": "Peatón"}
+
 _ORDEN_RANGOS_ETARIOS = [
     "0-15",
     "16-20",
@@ -84,7 +88,7 @@ class UsuariosVulnerablesAdapter:
 
         self._reparto_por_tipo = [
             RepartoTipoUsuario(
-                tipo=tipo,
+                tipo=_NOMBRE_PARA_MOSTRAR.get(tipo, tipo),
                 pct_fatales=b["con_fallecido"] / total_con_fallecido * 100,
                 letalidad_por_siniestro=b["con_fallecido"] / b["n"],
             )

@@ -8,7 +8,7 @@ from datetime import date
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.config import settings
-from app.domain.models import Franja, FuentePrecipitacion, Tercil
+from app.domain.models import Franja, FuenteParque, FuentePrecipitacion, Tercil
 
 AVISO_DATOS_SINTETICOS = (
     "El conjunto de datos es sintético, calibrado sobre agregados de "
@@ -36,6 +36,8 @@ class DistritoOut(BaseModel):
     pct_urbano: float
     poblacion: int
     poblacion_baja: bool
+    pct_hogares_auto: float
+    pct_trabaja_otro_lugar: float
 
 
 class DistritosResponse(BaseModel):
@@ -81,6 +83,14 @@ class PrediccionCeldaOut(BaseModel):
     franja: Franja
     siniestros_esperados: float
     fuente_prcp: FuentePrecipitacion
+    fuente_parque: FuenteParque = Field(
+        description="'observado': crec_parque_12m del mes consultado (2022-01 a 2026-06). "
+        "'ultimo_disponible': fecha fuera de ese rango, se usó el último mes disponible."
+    )
+    prcp_mensual: float = Field(
+        description="mm de precipitación mensual usados en la predicción (el valor enviado "
+        "o la normal climatológica del distrito y mes)."
+    )
 
 
 class PrediccionResponse(BaseModel):
@@ -94,9 +104,9 @@ class RankingItemOut(BaseModel):
     siniestros_esperados: float
     tercil: Tercil
     confiabilidad_spearman: float = Field(
-        description="Spearman de ordenamiento de ESE tercil en la evaluación de NB07 "
-        "(test 2025-2026). El tercil medio ordena mal (~0.65): es una limitación "
-        "documentada del modelo, no un defecto de este endpoint."
+        description="Spearman de ordenamiento de ESE tercil en el conjunto de prueba "
+        "2025-2026, con el modelo final (NB12). Es descriptivo: según NB08 depende "
+        "más del ancho del tercil que del modelo."
     )
 
 
@@ -130,18 +140,55 @@ class RankingQuery(BaseModel):
         return self
 
 
+class TPareadaMensualOut(BaseModel):
+    n_meses: int
+    t: float
+    p: float
+    meses_que_mejora: int
+
+
+class DieboldMarianoOut(BaseModel):
+    DM: float
+    p: float
+    dias: int
+
+
+class PruebasSignificanciaOut(BaseModel):
+    t_pareada_mensual: TPareadaMensualOut
+    diebold_mariano: DieboldMarianoOut
+
+
+class ImportanciaShapOut(BaseModel):
+    variable: str
+    valor: float
+
+
+class CalibracionFranjaOut(BaseModel):
+    franja: Franja
+    calibracion: float = Field(description="predicho/observado en el conjunto de prueba. 1.0 = perfecta.")
+
+
 class ModeloInfoResponse(BaseModel):
     nombre: str
+    version_modelo: str
     fecha_entrenamiento: str
     variables: list[str]
     offset: str
-    metricas: dict
+    metricas: dict = Field(description="Métricas del modelo final en el conjunto de prueba 2025-2026.")
+    metricas_referencia_nb07: dict = Field(
+        description="Métricas del modelo de NB07 en el mismo conjunto de prueba. Solo referencia "
+        "histórica: NO es el modelo vigente."
+    )
+    pruebas_significancia: PruebasSignificanciaOut
+    importancia_shap: list[ImportanciaShapOut] = Field(description="Ordenada de mayor a menor.")
+    calibracion_por_franja: list[CalibracionFranjaOut]
     limitaciones: list[str]
 
 
 class HealthResponse(BaseModel):
     estado: str
     modelo_cargado: bool
+    version_modelo: str
     log_tasa_base: float | None
     prediccion_canaria_ok: bool
     version: str
@@ -169,9 +216,24 @@ class ImpactoAnualOut(BaseModel):
 class ImpactoResumenItemOut(BaseModel):
     metrica: str
     periodo: str
-    variacion_interanual_pct: float | None
+    variacion_interanual_pct: float | None = Field(
+        description="Variación interanual en %. Es null (explícito, nunca omitido) cuando "
+        "no hay año previo comparable, p. ej. el período parcial 2026 ene-jun."
+    )
     lectura: str = Field(
         description="Nunca afirma causalidad: la ley coincide con el cambio, no lo causa."
+    )
+
+
+class TasaPorVehiculoOut(BaseModel):
+    anio: str
+    parque_vehicular: int = Field(description="Vehículos registrados (ONASEVI) en la fecha de corte.")
+    fecha_corte_parque: date
+    siniestros_por_1000_vehiculos: float
+    fallecidos_por_10000_vehiculos: float
+    parcial: bool = Field(description="True si el año no está completo (siniestros/fallecidos de la serie parcial).")
+    parque_es_dato_real: bool = Field(
+        default=True, description="El parque es dato real del registro vehicular, no sintético."
     )
 
 
@@ -179,6 +241,7 @@ class ImpactoLeyResponse(BaseModel):
     aviso: str = AVISO_RETROSPECTIVO
     fecha_aprobacion_ley: date
     serie_anual: list[ImpactoAnualOut]
+    tasas_por_vehiculo: list[TasaPorVehiculoOut]
     resumen: list[ImpactoResumenItemOut]
     limitaciones: list[str]
 
@@ -218,7 +281,10 @@ class ComparacionHistoricaResponse(BaseModel):
 
 class GrupoEquidadOut(BaseModel):
     grupo: str
-    calibracion: float = Field(description="sum(observado)/sum(predicho) del grupo. 1.0 = calibración perfecta.")
+    calibracion: float = Field(
+        description="sum(predicho)/sum(observado) del grupo en el conjunto de prueba. "
+        "1.0 = calibración perfecta; >1 = el modelo sobreestima."
+    )
     spearman: float = Field(description="Correlación de Spearman entre predicho y observado dentro del grupo.")
     n_distritos: int
 

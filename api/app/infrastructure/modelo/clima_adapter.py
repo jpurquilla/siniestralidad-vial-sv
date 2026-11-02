@@ -1,10 +1,10 @@
 """Adaptador de clima: normal climatológica de prcp_mensual por distrito×mes.
 
-prcp_mensual varía por año-mes real en matriz_frecuencia_v2.csv (no es una
+prcp_mensual varía por año-mes real en matriz_frecuencia_v3.csv.gz (no es una
 normal fija). Cuando el cliente de /api/v1/predicciones no envía prcp_mensual
 para simular un escenario, se usa el promedio histórico de ese distrito para
 el mes de la fecha consultada, sobre los años presentes en la matriz
-(2022-2026) — la 'normal climatológica' pedida en el encargo.
+(2022-2026) — la 'normal climatológica'. pandas lee el .gz directamente.
 """
 
 from __future__ import annotations

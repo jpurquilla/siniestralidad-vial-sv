@@ -14,7 +14,7 @@ from app.infrastructure.analitica.impacto_ley_adapter import ImpactoLeyAdapter
 
 @pytest.fixture
 def adapter() -> ImpactoLeyAdapter:
-    a = ImpactoLeyAdapter(settings.ruta_resultados_nb06)
+    a = ImpactoLeyAdapter(settings.ruta_resultados_nb06, settings.ruta_parque_vehicular)
     a.cargar_y_validar()
     return a
 
@@ -57,11 +57,51 @@ class TestLimitaciones:
     def test_expone_las_limitaciones_declaradas(self, adapter):
         limitaciones = adapter.limitaciones()
         assert len(limitaciones) == 5
-        assert any("sintetico" in l for l in limitaciones)
+        assert any("sintético" in l for l in limitaciones)
+
+    def test_limitaciones_normalizadas_con_mayuscula_y_punto_final(self, adapter):
+        for limitacion in adapter.limitaciones():
+            assert not limitacion[0].islower()
+            assert limitacion.endswith(".")
+
+    def test_ya_no_dice_que_el_parque_no_esta_medido(self, adapter):
+        limitaciones = adapter.limitaciones()
+        assert not any("no medido" in l for l in limitaciones)
+        assert any("parque vehicular real" in l for l in limitaciones)
+
+
+class TestTasasPorVehiculo:
+    """Parque real al 31-dic (suma de todas las clases y distritos del
+    registro ONASEVI) contra la serie oficial: valores esperados del encargo."""
+
+    def test_siniestros_por_mil_y_fallecidos_por_diez_mil(self, adapter):
+        tasas = {t.anio: t for t in adapter.tasas_por_vehiculo()}
+        assert tasas["2022"].siniestros_por_1000_vehiculos == pytest.approx(10.9, abs=0.05)
+        assert tasas["2025"].siniestros_por_1000_vehiculos == pytest.approx(11.0, abs=0.05)
+        assert tasas["2022"].fallecidos_por_10000_vehiculos == pytest.approx(8.44, abs=0.01)
+        assert tasas["2025"].fallecidos_por_10000_vehiculos == pytest.approx(6.13, abs=0.01)
+
+    def test_corte_es_31_de_diciembre_y_2026_es_parcial(self, adapter):
+        tasas = {t.anio: t for t in adapter.tasas_por_vehiculo()}
+        assert tasas["2022"].fecha_corte_parque == date(2022, 12, 31)
+        assert tasas["2022"].parcial is False
+        assert tasas["2026"].parcial is True
+        assert tasas["2026"].fecha_corte_parque == date(2026, 6, 30)
+
+    def test_corte_parcial_sale_de_la_cobertura_declarada(self):
+        from app.infrastructure.analitica.impacto_ley_adapter import (
+            ImpactoLeyRepositoryError,
+            _corte_de_cobertura_parcial,
+        )
+
+        assert _corte_de_cobertura_parcial(2026, "parcial (ene-jun)") == date(2026, 6, 30)
+        assert _corte_de_cobertura_parcial(2026, "parcial (ene-dic)") == date(2026, 12, 31)
+        with pytest.raises(ImpactoLeyRepositoryError):
+            _corte_de_cobertura_parcial(2026, "parcial")
 
 
 class TestArranqueFallido:
     def test_falla_si_no_existe_el_archivo(self, tmp_path):
-        a = ImpactoLeyAdapter(tmp_path / "no_existe.json")
+        a = ImpactoLeyAdapter(tmp_path / "no_existe.json", settings.ruta_parque_vehicular)
         with pytest.raises(Exception):
             a.cargar_y_validar()

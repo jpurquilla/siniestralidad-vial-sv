@@ -10,12 +10,19 @@ from dataclasses import dataclass
 from datetime import date
 
 from app.domain import calendario
-from app.domain.models import FeaturesCelda, Franja, FuentePrecipitacion, PrediccionCelda
+from app.domain.models import (
+    FeaturesCelda,
+    Franja,
+    FuenteParque,
+    FuentePrecipitacion,
+    PrediccionCelda,
+)
 from app.domain.ports import (
     CalendarioRepositoryPort,
     ClimaRepositoryPort,
     DistritoRepositoryPort,
     ExposicionRepositoryPort,
+    ParqueRepositoryPort,
     PredictorFrecuenciaPort,
 )
 
@@ -42,14 +49,18 @@ class PredecirCelda:
         clima: ClimaRepositoryPort,
         calendario_repo: CalendarioRepositoryPort,
         exposicion: ExposicionRepositoryPort,
+        parque: ParqueRepositoryPort,
     ) -> None:
         self._predictor = predictor
         self._distritos = distritos
         self._clima = clima
         self._calendario = calendario_repo
         self._exposicion = exposicion
+        self._parque = parque
 
-    def construir_features(self, peticion: PeticionPrediccionCelda) -> tuple[FeaturesCelda, FuentePrecipitacion]:
+    def construir_features(
+        self, peticion: PeticionPrediccionCelda
+    ) -> tuple[FeaturesCelda, FuentePrecipitacion, FuenteParque]:
         distrito = self._distritos.obtener(peticion.distrito_codigo)
         if distrito is None:
             raise DistritoNoEncontradoError(peticion.distrito_codigo)
@@ -63,6 +74,7 @@ class PredecirCelda:
 
         log_exposicion_v2 = self._exposicion.log_exposicion_v2(distrito.codigo, peticion.fecha)
         es_feriado = self._calendario.es_feriado(peticion.fecha, distrito.codigo)
+        crec_parque_12m, fuente_parque = self._parque.crec_parque_12m(distrito.codigo, peticion.fecha)
 
         features = FeaturesCelda(
             es_lluviosa=calendario.es_lluviosa(peticion.fecha),
@@ -73,17 +85,33 @@ class PredecirCelda:
             prcp_mensual=prcp_mensual,
             pct_urbano=distrito.pct_urbano,
             poblacion_baja=int(distrito.poblacion_baja),
+            franja_cod=peticion.franja.codigo,
+            crec_parque_12m=crec_parque_12m,
+            pct_hogares_auto=distrito.pct_hogares_auto,
+            pct_trabaja_otro_lugar=distrito.pct_trabaja_otro_lugar,
             log_exposicion_v2=log_exposicion_v2,
         )
-        return features, fuente_prcp
+        return features, fuente_prcp, fuente_parque
 
     def ejecutar(self, peticion: PeticionPrediccionCelda) -> PrediccionCelda:
-        features, fuente_prcp = self.construir_features(peticion)
-        (siniestros_esperados,) = self._predictor.predecir_lote([features])
-        return PrediccionCelda(
-            distrito_codigo=peticion.distrito_codigo,
-            fecha=peticion.fecha,
-            franja=peticion.franja,
-            siniestros_esperados=siniestros_esperados,
-            fuente_prcp=fuente_prcp,
-        )
+        return self.ejecutar_lote([peticion])[0]
+
+    def ejecutar_lote(self, peticiones: list[PeticionPrediccionCelda]) -> list[PrediccionCelda]:
+        """Predice todas las celdas con UNA sola llamada al predictor
+        (vectorizada), en el mismo orden que `peticiones`."""
+        construidas = [self.construir_features(p) for p in peticiones]
+        esperados = self._predictor.predecir_lote([features for features, _, _ in construidas])
+        return [
+            PrediccionCelda(
+                distrito_codigo=peticion.distrito_codigo,
+                fecha=peticion.fecha,
+                franja=peticion.franja,
+                siniestros_esperados=esperado,
+                fuente_prcp=fuente_prcp,
+                fuente_parque=fuente_parque,
+                prcp_mensual=features.prcp_mensual,
+            )
+            for peticion, (features, fuente_prcp, fuente_parque), esperado in zip(
+                peticiones, construidas, esperados, strict=True
+            )
+        ]
