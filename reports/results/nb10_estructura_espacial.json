@@ -5,7 +5,7 @@
   "efecto_fino_maximo": 0.007050150008069855,
   "umbral_efecto_fino": 0.05,
   "interpretable_como_hotspots_viales": false,
-  "origen_estructura_gruesa": "reparto por exposicion del generador (poblacion censal, urbanizacion, AMSS, parque vehicular); ver NB01 y NB03",
+  "origen_estructura_gruesa": "reparto de los siniestros al generar el conjunto; reglas no documentadas",
   "T1": {
     "decimales_max": 6,
     "proporcion_repetidas": 0.0,

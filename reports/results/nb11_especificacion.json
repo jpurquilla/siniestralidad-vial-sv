@@ -1,0 +1,87 @@
+{
+  "notebook": "NB11_expansion_variables",
+  "generado": "2026-11-01T16:47:43",
+  "matriz": "matriz_frecuencia_v3.csv.gz",
+  "target": "n_siniestros",
+  "offset": "log_exposicion_v2",
+  "features": [
+    "es_lluviosa",
+    "es_finde",
+    "dia_semana",
+    "periodo_agostino",
+    "es_feriado",
+    "prcp_mensual",
+    "pct_urbano",
+    "poblacion_baja",
+    "franja_cod",
+    "crec_parque_12m",
+    "pct_hogares_auto",
+    "pct_trabaja_otro_lugar"
+  ],
+  "categoricas": [
+    "dia_semana",
+    "franja_cod"
+  ],
+  "codificacion_franja": {
+    "Madrugada (00-05)": 0,
+    "Manana (06-11)": 1,
+    "Tarde (12-17)": 2,
+    "Noche (18-23)": 3
+  },
+  "interaccion_franja_finde": false,
+  "candidatas": {
+    "franja_cod": {
+      "tipo": "temporal",
+      "resolucion": "franja horaria",
+      "fuente": "siniestros.csv (grilla de NB03)"
+    },
+    "es_quincena": {
+      "tipo": "temporal",
+      "resolucion": "día",
+      "fuente": "calendario"
+    },
+    "es_fiesta_patronal": {
+      "tipo": "temporal y territorial",
+      "resolucion": "distrito y día",
+      "fuente": "calendario de fiestas patronales"
+    },
+    "pct_motocicletas": {
+      "tipo": "territorial",
+      "resolucion": "distrito y mes",
+      "fuente": "ONASEVI, Registro Público de Vehículos"
+    },
+    "crec_parque_12m": {
+      "tipo": "territorial",
+      "resolucion": "distrito y mes",
+      "fuente": "ONASEVI, Registro Público de Vehículos"
+    },
+    "pct_hogares_moto": {
+      "tipo": "territorial",
+      "resolucion": "distrito",
+      "fuente": "Censo 2024, TAB_HOG_4"
+    },
+    "pct_hogares_auto": {
+      "tipo": "territorial",
+      "resolucion": "distrito",
+      "fuente": "Censo 2024, TAB_HOG_4"
+    },
+    "pct_trabaja_otro_lugar": {
+      "tipo": "territorial",
+      "resolucion": "distrito",
+      "fuente": "Censo 2024, TAB_CE_5"
+    }
+  },
+  "split": {
+    "train": "2022-01-01 a 2024-12-31",
+    "test": "2025-01-01 a 2026-06-30",
+    "columna": "split"
+  },
+  "particion_interna": {
+    "proposito": "seleccion de hiperparametros sin usar el conjunto de prueba",
+    "ajuste": "2022-01-01 a 2023-12-31",
+    "validacion": "2024-01-01 a 2024-12-31",
+    "filas_ajuste": 300760,
+    "filas_validacion": 150792,
+    "nota": "La frontera train/test de NB03 no se altera."
+  }
+}

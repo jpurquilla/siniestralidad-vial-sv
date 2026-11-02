@@ -1,0 +1,17 @@
+{
+  "notebook": "NB11_expansion_variables",
+  "generado": "2026-11-01T16:47:14",
+  "hashes": {
+    "matriz_frecuencia_v2": "3bf84a683800da992814a8f497ec069734c0cc1b3d185e453e3fd328b1497876",
+    "nb05_especificacion": "87ad7ca3379cb954f186faed1bcf522af1dcf0b91d302f7c1f7d2c34606fec3b",
+    "nb07_especificacion": "765ff7b9aaff0a8673de3a21f888479b5351004e0f921607ae7fb1749bb9c04f",
+    "nb07_metricas": "cf0775a94cbe6917f50df75632358efa48c961d6bfc5ebb3fd82c6548425fa01",
+    "censo": "f809c534bd1bc01becfda3335c2e0cc335144de944aace8c6114bac473903e56",
+    "censo_bienes": "def868287c7b58a757e67653309adc4780b16a5b6da93fef0dd7dddb719d02e0",
+    "censo_trabajo": "433e9be5d4eec4a88ab3397e539d2e7e25141ff11b127b5bd8fc08a756f9fba0",
+    "parque": "bdc12954f1de5be7c474e0bd766b779e4ace5a05238515db057770bdacbb2ca6",
+    "parque_catalogo": "6d577a979e9195abae73b89a79421ab67587aedd333d66eb1e727ee06a970096",
+    "fiestas": "d8070231cf0ab31f24a5787ffb58b66b3fbc1f64acd3f1a76d69ff0d9f33473b",
+    "feriados": "e5b2474d145dd56f74e5af443825c513c644c4db3b2768c998be2bb30a98aa47"
+  }
+}

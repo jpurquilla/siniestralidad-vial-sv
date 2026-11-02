@@ -2,7 +2,7 @@
   "notebook": "NB08_tercil_medio_y_validacion",
   "generado": "2026-09-15T10:08:26",
   "seed": 42,
-  "nota_numeracion": "El submodelo condicional de severidad, previsto como NB08 en el plan original de Etapa 2, pasa a NB09; ST-DBSCAN a NB10 y fairness urbano/rural a NB11. NB08 pasa a ocupar este lugar porque el problema abierto de NB07 condiciona los modelos posteriores: antes de construir sobre el modelo de frecuencia hay que saber si su capacidad ordinal en el rango medio esta comprometida.",
+  "nota_numeracion": "NB08 examina el problema abierto de NB07 antes de usar el modelo de frecuencia como base: hay que saber si su capacidad ordinal en el rango medio esta comprometida.",
   "decisiones": {
     "D1_particion_de_diagnostico": {
       "decision": "Secciones 2-4 deciden sobre validacion 2024; el test se reporta como descriptivo y se evalua una sola vez en la Seccion 6.",

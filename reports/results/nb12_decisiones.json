@@ -1,0 +1,18 @@
+{
+  "notebook": "NB12_modelo_final_ampliado",
+  "generado": "2026-11-01T19:33:57",
+  "seed": 42,
+  "D1_busqueda": {
+    "ensayos": 40,
+    "max_rondas": 1500,
+    "paciencia": 50,
+    "muestreador": "TPESampler(seed=42)",
+    "espacio": "el de NB07"
+  },
+  "D2_referencia_validacion": "gemelo de NB07 (hiperparametros y rondas de NB07, 8 variables) entrenado en 2022-2023",
+  "D3_unidad_pruebas": "mes; t pareada sobre RMSE mensual y Wilcoxon",
+  "D4_prueba": "Diebold-Mariano sobre perdida cuadratica diaria, Newey-West 7 rezagos",
+  "D5_ablacion": "bootstrap por bloques mensuales, 2000 remuestreos",
+  "D6_adopcion": "mejora del objetivo en validacion y p < 0.05 en t pareada mensual",
+  "D7_estaciones": "sensibilidad sin reentrenar"
+}

@@ -1,0 +1,13 @@
+{
+  "notebook": "NB12_modelo_final_ampliado",
+  "generado": "2026-11-01T19:34:15",
+  "corregido_post_observacion": true,
+  "motivo": "El modelo ampliado baja el Spearman entre distritos, sobrecorrige la calibracion rural y deja la franja sin calibrar del todo; la ablacion solo atribuye aporte a la franja.",
+  "variante": "8 variables de NB07 + franja_cod",
+  "D8_regla": {
+    "a": "mejor objetivo que el gemelo y p < 0.05 en t pareada mensual",
+    "b": "Spearman global >= gemelo - 0.01",
+    "c": "|calibracion rural - 1| menor que la del modelo ampliado",
+    "si_no_cumple": "modelo final = ampliado"
+  }
+}
