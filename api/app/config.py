@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     ruta_especificacion_nb12: Path = _RAIZ_REPO / "reports" / "results" / "nb12_especificacion.json"
     ruta_metricas_nb12: Path = _RAIZ_REPO / "reports" / "results" / "nb12_metricas.json"
 
+    # --- Agregación de siniestros en hexágonos (mapa de concentraciones por área) ---
+    lado_hexagono_km: float = 2.0
+
     # --- Tendencia de exposición (NB05) ---
     ruta_especificacion_nb05: Path = _RAIZ_REPO / "reports" / "results" / "nb05_especificacion_v2.json"
 
@@ -36,6 +39,8 @@ class Settings(BaseSettings):
 
     # --- GeoJSON de distritos: puede no existir (ver README, sección GeoJSON) ---
     ruta_geojson_distritos: Path = _RAIZ_REPO / "data" / "geo" / "distritos.geojson"
+    # GeoJSON del censo 2024 (262 distritos, propiedades Dep_min/Dis_min): el mapa de la portada del PDF.
+    ruta_geojson_censo: Path = _RAIZ_REPO / "data" / "geo" / "distritos_censo2024.geojson"
 
     # --- Análisis retrospectivos (NB06, NB09) — nunca predictivos ---
     ruta_resultados_nb06: Path = _RAIZ_REPO / "reports" / "results" / "nb06_resultados.json"
@@ -59,6 +64,9 @@ class Settings(BaseSettings):
     # cookies ni sesiones, así que no hace falta allow_credentials. En env se
     # define como lista JSON: CORS_ORIGENES=["http://localhost:4200"] ---
     cors_origenes: list[str] = ["http://localhost:4200"]
+
+    # --- Zona horaria del informe por periodo (campo `generado`) ---
+    zona_horaria: str = "America/El_Salvador"
 
     # --- Logging ---
     nivel_log: str = "INFO"

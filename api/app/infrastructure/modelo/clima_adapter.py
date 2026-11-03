@@ -16,6 +16,9 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+ANIO_ENTRENAMIENTO_INICIO = 2022
+ANIO_ENTRENAMIENTO_FIN = 2024
+
 
 class ClimaRepositoryError(RuntimeError):
     """La matriz de frecuencia no existe o no tiene la forma esperada."""
@@ -27,6 +30,7 @@ class ClimaAdapter:
     def __init__(self, ruta_matriz: Path) -> None:
         self._ruta_matriz = ruta_matriz
         self._normales: dict[tuple[str, int], float] | None = None
+        self._rango_entrenamiento: tuple[float, float] | None = None
 
     def cargar_y_validar(self) -> None:
         if not self._ruta_matriz.exists():
@@ -34,11 +38,21 @@ class ClimaAdapter:
 
         df = pd.read_csv(
             self._ruta_matriz,
-            usecols=["distrito_key", "mes", "prcp_mensual"],
-            dtype={"distrito_key": str, "mes": int, "prcp_mensual": float},
+            usecols=["distrito_key", "fecha", "mes", "prcp_mensual"],
+            dtype={"distrito_key": str, "fecha": str, "mes": int, "prcp_mensual": float},
         )
         promedios = df.groupby(["distrito_key", "mes"])["prcp_mensual"].mean()
         self._normales = {(d, int(m)): float(v) for (d, m), v in promedios.items()}
+
+        anio = df["fecha"].str[:4].astype(int)
+        entrenamiento = df.loc[
+            (anio >= ANIO_ENTRENAMIENTO_INICIO) & (anio <= ANIO_ENTRENAMIENTO_FIN), "prcp_mensual"
+        ]
+        if entrenamiento.empty:
+            raise ClimaRepositoryError(
+                f"La matriz no tiene filas de {ANIO_ENTRENAMIENTO_INICIO}-{ANIO_ENTRENAMIENTO_FIN}."
+            )
+        self._rango_entrenamiento = (float(entrenamiento.min()), float(entrenamiento.max()))
 
         n_distritos = len({d for d, _ in self._normales})
         logger.info(
@@ -58,3 +72,11 @@ class ClimaAdapter:
             raise ClimaRepositoryError(
                 f"No hay normal climatológica para distrito={distrito_codigo!r} mes={mes!r}"
             ) from exc
+
+    def rango_entrenamiento(self) -> tuple[float, float]:
+        """(mínimo, máximo) de prcp_mensual observado en 2022-2024 (entrenamiento)."""
+        if self._rango_entrenamiento is None:
+            raise ClimaRepositoryError(
+                "El adaptador no fue validado (llamar cargar_y_validar) antes de usarse."
+            )
+        return self._rango_entrenamiento

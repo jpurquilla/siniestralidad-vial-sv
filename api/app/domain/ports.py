@@ -60,6 +60,11 @@ class ClimaRepositoryPort(Protocol):
         sobre los años presentes en matriz_frecuencia_v3.csv.gz (2022-2026)."""
         ...
 
+    def rango_entrenamiento(self) -> tuple[float, float]:
+        """(mínimo, máximo) de prcp_mensual observado en el entrenamiento
+        (2022-2024) en matriz_frecuencia_v3.csv.gz."""
+        ...
+
 
 class CalendarioRepositoryPort(Protocol):
     def es_feriado(self, fecha: date, distrito_codigo: str) -> bool:

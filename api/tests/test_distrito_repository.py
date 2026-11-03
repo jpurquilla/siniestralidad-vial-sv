@@ -64,6 +64,11 @@ class TestClimaAdapter:
         valor = clima.normal_climatologica("acajutla", 6)
         assert valor > 0
 
+    def test_rango_entrenamiento_coincide_con_la_matriz_2022_2024(self, clima):
+        minimo, maximo = clima.rango_entrenamiento()
+        assert minimo == pytest.approx(0.0)
+        assert maximo == pytest.approx(812.1)
+
     def test_distrito_desconocido_lanza_error(self, clima):
         from app.infrastructure.modelo.clima_adapter import ClimaRepositoryError
 

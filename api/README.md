@@ -86,6 +86,19 @@ brew install libomp
 
 Si `import xgboost` falla con un error sobre `libxgboost.dylib`, es por esto.
 
+**Informes PDF:** WeasyPrint necesita pango en el sistema (no lo instala pip):
+
+```bash
+brew install pango                                  # macOS
+sudo apt install libpango-1.0-0 libpangoft2-1.0-0   # Debian/Ubuntu
+```
+
+Si `import weasyprint` falla con `cannot load library 'libgobject-2.0-0'`
+(típico en macOS con Homebrew), apunta el cargador a las librerías de brew:
+`export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib`. En el entorno de
+desarrollo de este proyecto no hizo falta; el import es diferido, así que
+sin pango solo falla `periodo.pdf` (el resto de la API arranca igual).
+
 ---
 
 ## 3. Variables de entorno
@@ -132,8 +145,10 @@ se encuentra, o "features" del modelo — es intencional. Ver la sección 6.
 | GET | `/api/v1/usuarios-vulnerables` | Reparto de fatales y letalidad por tipo de usuario y por rango etario (NB09 §4, retrospectivo) |
 | GET | `/api/v1/comparacion-historica` | Observado real vs. predicho por el modelo, sumado por distrito sobre las 224,952 filas de la **partición de prueba** (2025-2026) — diagnóstico de ajuste, no predicción |
 | GET | `/api/v1/equidad` | Calibración (predicho/observado) y Spearman predicho-vs-observado por urbano/rural (umbral de NB08 §4) y por alta/baja densidad poblacional |
-| GET | `/api/v1/siniestros/puntos` | Puntos individuales (lat/lon reales) de `siniestros.csv`, con filtros server-side (fecha, tipo de siniestro, vehículo, hora, departamento/distrito, factor causante) para el mapa de hotspots estilo ONASEVI. Tope de 90,000 puntos por respuesta (413 si se excede) |
+| GET | `/api/v1/siniestros/puntos` | Puntos individuales (lat/lon reales) de `siniestros.csv`, con filtros server-side (fecha, tipo de siniestro, vehículo, hora, departamento/distrito, factor causante) para el mapa de hotspots estilo ONASEVI. Tope de 90,000 puntos por respuesta (413 si se excede). Con `agregacion=hex` devuelve hexágonos de 2 km de **lado** con su conteo y los distritos que abarcan; con `agregacion=distrito`, los 103 distritos con conteo, población y tasa por 10,000 habitantes. Ambas respetan los mismos filtros, no tienen tope y la suma de sus conteos es el total filtrado (89,946 sin filtros). La grilla es Python puro (`domain/hexagonos.py`, proyección equirrectangular local, deformación < 1%): no se agregó ninguna dependencia. Existen porque las ubicaciones no tienen precisión por debajo de 1 km (NB10 §8) |
 | GET | `/api/v1/siniestros/opciones-filtro` | Valores reales disponibles para poblar los filtros del mapa de hotspots (tipos de siniestro, de vehículo, factores causantes, departamentos) |
+| POST | `/api/v1/informes/periodo` | Informe de siniestros esperados de un periodo (máx. 92 días): total con rango del 90%, por distrito/franja/día de la semana, mapa distrito × franja, desglose por causa, 10 prioridades, párrafo de `resumen`, supuestos y limitaciones. Ver sección 5.1 |
+| GET | `/api/v1/informes/periodo.pdf` · `/periodo.xlsx` | El mismo informe como PDF (carta, con gráficos vectoriales) o Excel (una hoja por tabla), con los mismos parámetros en query string |
 
 Ejemplo de `POST /api/v1/predicciones`:
 
@@ -186,6 +201,136 @@ exposición poblacional, no concentraciones viales verificadas. Por eso el
 resto de la API es deliberadamente coroplética (por distrito) y no de
 puntos: este endpoint es la única excepción, autorizada explícitamente para
 replicar el mapa de hotspots de ONASEVI/FONAT.
+
+### 5.1 Informe de siniestros esperados por periodo
+
+El informe **no es un modelo nuevo**: los esperados son promedios sumables, así
+que el informe agrega las predicciones que el modelo ya hace (una sola llamada
+vectorizada a `predecir_lote` vía `PredecirCelda.esperados_lote`, con los
+mismos features que la tarjeta del mapa de riesgo). 92 días × 103 distritos
+(37,904 celdas) tardan ~0.36 s en el JSON, ~0.37 s en el Excel y ~1.0 s en el PDF (medido en desarrollo).
+
+Parámetros (cuerpo JSON en `POST`; query string en `GET`, las listas se
+repiten: `distritos=a&distritos=b`):
+
+| Parámetro | Descripción |
+|---|---|
+| `fecha_inicio`, `fecha_fin` | Obligatorios. Máximo **92 días** inclusive; si se excede, o `fecha_fin < fecha_inicio`, 422 con mensaje en español |
+| `departamento` | Opcional. Nombre con tildes, como en `/api/v1/distritos` (422 si no existe) |
+| `distritos` | Opcional. Códigos de distrito (404 si alguno no existe) |
+| `franjas` | Opcional. `Madrugada (00-05)`, `Manana (06-11)`, `Tarde (12-17)`, `Noche (18-23)` (422 si es otro valor) |
+| `dias_semana` | Opcional. Enteros 0-6, **0 = lunes** (422 fuera de rango, o si ningún día del rango coincide) |
+
+Respuestas: JSON (ver `app/infrastructure/web/schemas_informe.py`),
+`application/pdf` y `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+con `Content-Disposition: attachment; filename="informe-siniestros-{inicio}_{fin}.pdf|xlsx"`.
+
+Notas de diseño:
+
+- **Rango del 90%** (`ic90_inf`/`ic90_sup`): cuantiles 5% y 95% de Poisson(λ),
+  λ = suma de esperados, implementados en Python puro
+  (`domain/poisson.py`, sin scipy). Refleja solo la variación aleatoria, no el
+  error del modelo (limitación 6 del propio informe).
+- **Causas**: la causa se conoce después del siniestro, no es variable del
+  modelo. `por_causa` reparte lo esperado de cada franja según la proporción
+  histórica (2022-2024) de cada causa en esa franja: 8 causas principales
+  + «Otras causas». Los nombres se emiten en «sentence case» (solo la inicial en
+  mayúscula) desde UNA función, `nombre_causa` (`domain/colores_causas.py`). El color
+  de cada causa es fijo (misma fuente única; viaja en `colores_causas`): tres azules
+  (tonos del azul institucional `#12355B`) para las tres causas más frecuentes, un
+  único ámbar (`#E3A21A`) para «Estado de ebriedad o droga» (la causa cuya proporción
+  varía por franja), cuatro grises de distinta luminosidad para el resto y gris muy
+  claro para «Otras causas». El informe no desglosa causas por distrito
+  (la composición es igual en todos): no existe `causas_por_franja_distritos`.
+- **Día de la semana = promedio por día** (v2): `por_dia_semana[]` trae
+  `{dia, esperado, veces, suma}` con `esperado = suma / veces` (`veces` = cuántas
+  veces aparece ese día en el periodo ya filtrado; 0 → `esperado` 0.0). Así un
+  día no «gana» solo por aparecer 5 veces en vez de 4. El «día de mayor riesgo»
+  usa el promedio (empate exacto: orden de la semana, nunca el nº de apariciones).
+  `prioridades[]` trae `{distrito, franja, dia_semana, esperado, veces}` con el
+  promedio por día de la combinación; orden por promedio y, en empate, mayor suma
+  y nombre.
+- **Tercil recalculado con el propio informe** (v2): los distritos del informe
+  ordenados por `esperado` se reparten en tres grupos ⌈n/3⌉/⌊n/3⌋ (103 → 35, 34, 34;
+  n=1 → alto; n=2 → alto, medio), con desempate por código. Ya no se usa el
+  tercil histórico (`TercilRepositoryPort` sigue existiendo para el resto de la API).
+- **`resumen`** (v2, fuente única del texto que muestran la web, el PDF y el Excel):
+  `{texto, filas}`. El párrafo se redacta en `application/redactar_resumen.py` con
+  las cifras del propio informe (totales y rangos enteros con coma de miles,
+  «cerca del X%» de ebriedad de noche/madrugada frente a día, desde la composición
+  histórica 2022-2024), omitiendo las frases que no aplican (una franja, un día de la
+  semana, un distrito, franjas sin noche o sin día); `filas` son exactamente 4.
+  Con el mismo mes la fecha se compacta («Entre el 2 y el 20 de noviembre de 2026»).
+  En la fila del día, si el promedio es < 10 se usa un decimal («Martes, 1.8 por día»).
+- **Limitaciones**: son 6 y sus cifras se calculan (calibración rural de
+  `CalcularEquidad`; porcentajes de tipo de vehículo de `siniestros.csv`
+  2022-2024), no se escriben a mano. El tipo de vehículo no se desglosa porque
+  casi no varía con la franja, el distrito ni la causa.
+- **`supuestos`**: `dias_con_lluvia_normal` es el nº de días considerados (el
+  informe nunca recibe lluvia observada); `dias_con_ultimo_parque`, los de esos
+  días en que algún distrito usó `ultimo_disponible`.
+- **Filtros y vistas**: `por_dia_semana` siempre trae los 7 días y
+  `por_franja`/`distrito_x_franja` las 4 franjas (con 0.0 las excluidas por
+  el filtro); `causas_por_franja` solo las franjas filtradas.
+
+**Por qué Jinja2 + WeasyPrint** (las dos únicas dependencias nuevas de runtime):
+el PDF se maqueta como HTML/CSS (plantilla en
+`app/infrastructure/informes/plantilla_informe.html` + `informe.css`), lo que da
+paginación, encabezado y pie repetidos con «Página X de Y»
+(`counter(page)`/`counter(pages)`), tablas con encabezado repetido,
+`break-inside: avoid` en gráficos, fuentes incrustadas y SVG vectorial.
+Alternativas descartadas: reportlab/fpdf obligan a maquetar a mano cada
+coordenada y salto de página; un navegador headless exige instalar Chromium.
+WeasyPrint requiere **pango** en el sistema (ver sección 2).
+
+**Gráficos**: cadenas SVG generadas en Python
+(`infrastructure/informes/graficos_svg.py`), sin librerías de gráficos ni
+imágenes raster; cada uno lleva `<title>`/`<desc>` como texto alternativo.
+Son 4 figuras numeradas (1 causas del periodo con rango del 90%, 2 composición por franja,
+3 promedio por día de la semana, 4 mapa de calor de 20 distritos) y 3 tablas (resumen,
+prioridades, distritos), todas con «Fuente: …». Etiquetas directas al final de la barra,
+ejes con «nice ticks» (pasos 1/2/2.5/5 × 10^k), % dentro del segmento solo si mide más de 8%.
+En la composición apilada la identificación de causas es una clave horizontal compacta
+pegada bajo las barras (dentro del propio SVG): los segmentos de 4-8% no admiten nombre
+alineado sin solaparse. El aviso de datos sintéticos va solo en el pie de cada página.
+
+**Listas en el PDF**: los ítems de «Supuestos y limitaciones» llevan el marcador («•», «1.»)
+como texto real dentro del párrafo (sangría francesa), no con `list-style`/`::marker`.
+Causa verificada: WeasyPrint dibuja el marcador como un objeto de texto aparte, emitido
+fuera del orden de lectura del flujo, y `pypdf` (modo plano, el que usan los tests) lo
+descarta, así que el texto extraído salía sin viñetas ni números (`pdftotext` y
+`extraction_mode="layout"` sí los muestran). Con el marcador como texto del ítem, todos
+los extractores devuelven el ítem completo y con su marcador (hay un test).
+
+**Tipografía y colores**: se incrusta **Public Sans** (pesos 400, 500 y 600) desde
+`app/infrastructure/informes/fuentes/`, con su licencia SIL Open Font License 1.1
+(`OFL-PublicSans.txt`). La familia no trae peso 700: lo que antes era negrita es 600.
+Paleta: tinta `#14202E`, texto secundario `#4A5565`, azul `#12355B`, escala
+`#DCE6F0 #A9C1D9 #6F95BC #3A6A9B #12355B`, líneas `#D5DAE1` y ámbar `#E3A21A` solo
+para «Estado de ebriedad o droga» y la barra de la cifra de la portada. Verificación:
+`pdffonts informe.pdf` debe listar solo `Public-Sans`, `Public-Sans-Medium` y
+`Public-Sans-Semi-Bold` con `emb = yes` (hay un test). Importante: WeasyPrint solo
+registra los `@font-face` de una hoja de estilos pasada por código si se le da un
+`FontConfiguration` (lo hace `renderer_pdf.py`); sin él, usaría en silencio la
+fuente del sistema sin avisar.
+
+**Portada** (`portada.html`, `portada.css`, `portada_svg.py`, `logo.svg`): página con nombre
+`portada`, sin encabezado ni «Página X de Y» (solo el aviso de datos sintéticos en el pie), con
+el mapa de distritos coloreado por siniestros esperados (5 clases por cuantiles; con pocos
+valores, menos clases; un solo distrito = el azul más oscuro y el resto «fuera del estudio»),
+los 4 distritos principales rotulados sin superponerse, la cifra total con su rango del 90% y
+los filtros en lenguaje llano. El mapa usa el GeoJSON del censo 2024
+(`data/geo/distritos_censo2024.geojson`, 262 distritos con `Dep_min`/`Dis_min`; ajuste
+`ruta_geojson_censo`), que es distinto del `distritos.geojson` que sirve la API; los 103
+distritos del estudio coinciden por nombre. Esa capa trae ~735 mil vértices (9 MB de SVG,
+~7 s de WeasyPrint): `portada_svg._aligerar` descarta los vértices a menos de 0.45 unidades del
+viewBox (~0.08 mm impresos) y deja el PDF vectorial en ~0.9 MB de SVG y ~2 s.
+
+**Dependencias de tests**: `pypdf` (solo para extraer el texto del PDF y
+comprobar que sus cifras coinciden con las del JSON, y que Public Sans está
+incrustada; se sube el límite de tokens por flujo de pypdf porque la portada trae el mapa
+como vectores). `scipy`, si está instalado, se usa solo en un test para contrastar
+los cuantiles de Poisson (`pytest.importorskip`); no es dependencia de la API.
 
 ---
 
@@ -271,6 +416,18 @@ Los tests se organizan así (`pytest` corre toda la suite):
   1,656 "Volcamiento", 14 departamentos) y cada filtro por separado.
 - `test_casos_uso.py` — orquestación de `application/` con dobles de
   prueba en memoria (no toca el modelo real).
+- `test_poisson.py`, `test_graficos_svg.py` — cuantiles de Poisson (valores
+  conocidos y contraste con scipy si existe) y gráficos SVG (bien formados,
+  un color fijo por causa, paleta azul/gris/ámbar, nice ticks, % dentro del
+  segmento solo si >8%, contraste del texto).
+- `test_redactar_resumen.py` — redacción del resumen con valores controlados
+  (fechas, singular/plural, un distrito, franjas y días filtrados, ebriedad).
+- `test_informe_periodo.py` — informe por periodo: caso de uso con dobles en
+  memoria (totales, causas, promedio por día y `veces`, prioridades por promedio,
+  terciles 35/34/34, test del lunes, filtros, validaciones) y endpoints JSON/PDF/XLSX
+  contra la app real (coherencia de totales, coincidencia con `/predicciones`,
+  422 por >92 días, cifras del PDF y el Excel iguales a las del JSON,
+  rendimiento < 5 s para 92 días × 103 distritos).
 - `test_api.py` — end-to-end con `TestClient`, incluida la validación de
   entradas inválidas (distrito inexistente, fecha absurda, franja fuera de
   rango, rango de fechas demasiado largo) y los 6 endpoints retrospectivos
@@ -300,10 +457,11 @@ validan una sola vez en el `lifespan` de `app/main.py`, nunca por request.
 api/
   app/
     domain/            # modelos, puertos (Protocol), reglas de calendario puras
-    application/        # casos de uso: predecir_celda, ranking_distritos
+    application/        # casos de uso: predecir_celda, ranking_distritos, generar_informe_periodo
     infrastructure/
       modelo/          # XGBoost (NB12), exposición (NB05), parque, calendario/feriados, clima, terciles
       geo/             # catálogo de distritos, GeoJSON
+      informes/        # gráficos SVG, plantilla Jinja2 + CSS, renderers PDF (WeasyPrint) y Excel, portada, fuentes Public Sans
       web/             # routers FastAPI, schemas pydantic, dependencias
     config.py
     main.py

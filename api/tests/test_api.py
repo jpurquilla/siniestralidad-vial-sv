@@ -15,6 +15,14 @@ from app.infrastructure.web.dependencias import get_geojson_adapter
 from app.main import app
 
 
+_NO_MONOTONO = pytest.mark.xfail(
+    strict=True,
+    reason="Hallazgo: el modelo XGBoost no es monótono en prcp_mensual (sin monotone_constraints). "
+    "Con 2024-06-15/Tarde, +100% baja hasta -8.7% en 48 distritos y -100% sube hasta +19.9% "
+    "(Mejicanos) en 8. Requiere decisión: restricción monótona al reentrenar o aceptar y explicar.",
+)
+
+
 class TestSalud:
     def test_health_ok(self, client):
         r = client.get("/health")
@@ -169,6 +177,85 @@ class TestPredicciones:
         assert celda["fuente_prcp"] == "normal_climatologica"
         assert 0 < celda["siniestros_esperados"] < 20
         assert celda["fuente_parque"] == "observado"
+
+    @pytest.mark.parametrize("distrito", ["san salvador", "soyapango", "santa tecla"])
+    def test_300_mm_predice_mas_que_0_mm_en_el_area_metropolitana(self, client, distrito):
+        def esperado(prcp):
+            r = client.post(
+                "/api/v1/predicciones",
+                json={
+                    "distritos": [distrito],
+                    "fecha_inicio": "2024-06-15",
+                    "fecha_fin": "2024-06-15",
+                    "franjas": ["Tarde (12-17)"],
+                    "prcp_mensual": prcp,
+                },
+            )
+            assert r.status_code == 200
+            return r.json()["predicciones"][0]["siniestros_esperados"]
+
+        assert esperado(300) > esperado(0)
+
+    @staticmethod
+    def _por_distrito(client, **extra):
+        codigos = [d["codigo"] for d in client.get("/api/v1/distritos").json()["distritos"]]
+        r = client.post(
+            "/api/v1/predicciones",
+            json={
+                "distritos": codigos,
+                "fecha_inicio": "2024-06-15",
+                "fecha_fin": "2024-06-15",
+                "franjas": ["Tarde (12-17)"],
+                **extra,
+            },
+        )
+        assert r.status_code == 200
+        return {c["distrito_codigo"]: c for c in r.json()["predicciones"]}
+
+    @_NO_MONOTONO
+    def test_escenario_mas_100_pct_nunca_reduce_ningun_distrito(self, client):
+        base = self._por_distrito(client)
+        doble = self._por_distrito(client, factor_prcp=1)
+        assert len(base) == 103
+        bajaron = [d for d in base if doble[d]["siniestros_esperados"] < base[d]["siniestros_esperados"] - 1e-9]
+        assert bajaron == []
+        assert {c["fuente_prcp"] for c in doble.values()} == {"escenario_relativo"}
+
+    @_NO_MONOTONO
+    def test_escenario_menos_100_pct_nunca_aumenta_ningun_distrito(self, client):
+        base = self._por_distrito(client)
+        seco = self._por_distrito(client, factor_prcp=-1)
+        subieron = [d for d in base if seco[d]["siniestros_esperados"] > base[d]["siniestros_esperados"] + 1e-9]
+        assert subieron == []
+        assert all(c["prcp_mensual"] == 0 for c in seco.values())
+
+    def test_factor_prcp_aplica_la_normal_de_cada_distrito_y_respeta_el_rango(self, client):
+        base = self._por_distrito(client)
+        doble = self._por_distrito(client, factor_prcp=1)
+        for d, c in base.items():
+            assert doble[d]["prcp_mensual"] == pytest.approx(min(812.1, c["prcp_mensual"] * 2))
+        assert len({round(c["prcp_mensual"], 3) for c in doble.values()}) > 1
+
+    def test_factor_prcp_y_prcp_mensual_son_excluyentes(self, client):
+        r = client.post(
+            "/api/v1/predicciones",
+            json={
+                "distritos": ["san salvador"],
+                "fecha_inicio": "2024-06-15",
+                "fecha_fin": "2024-06-15",
+                "prcp_mensual": 100,
+                "factor_prcp": 0.5,
+            },
+        )
+        assert r.status_code == 422
+
+    @pytest.mark.parametrize("factor", [-1.5, 1.5])
+    def test_factor_prcp_fuera_de_rango_es_422(self, client, factor):
+        r = client.post(
+            "/api/v1/predicciones",
+            json={"distritos": ["san salvador"], "fecha_inicio": "2024-06-15", "fecha_fin": "2024-06-15", "factor_prcp": factor},
+        )
+        assert r.status_code == 422
 
     def test_las_cuatro_franjas_dan_valores_distintos_y_madrugada_es_la_menor(self, client):
         r = client.post(
@@ -464,3 +551,128 @@ class TestSiniestrosOpcionesFiltro:
             "Colisión", "Atropello", "Características especiales",
             "Choque contra objeto fijo", "Volcamiento",
         }
+
+
+class TestClima:
+    def test_rango_entrenamiento_viene_de_la_matriz(self, client):
+        r = client.get("/api/v1/clima/rango-entrenamiento")
+        assert r.status_code == 200
+        assert r.json() == {"minimo_mm": 0.0, "maximo_mm": 812.1, "anio_inicio": 2022, "anio_fin": 2024}
+
+
+class TestAgregacionSiniestros:
+    """Agregaciones de /api/v1/siniestros/puntos (hexágonos y distritos)."""
+
+    TOTAL = 89_946
+
+    @staticmethod
+    def _agregar(client, agregacion, **filtros):
+        r = client.get("/api/v1/siniestros/puntos", params={"agregacion": agregacion, **filtros})
+        assert r.status_code == 200, r.text
+        return r.json()
+
+    def test_con_filtros_vacios_la_suma_de_hexagonos_es_el_total_de_siniestros(self, client):
+        cuerpo = self._agregar(client, "hex")
+        assert sum(h["conteo"] for h in cuerpo["hexagonos"]) == self.TOTAL
+        assert cuerpo["total"] == self.TOTAL
+        assert cuerpo["agregacion"] == "hex"
+        assert cuerpo["lado_km"] == 2.0
+
+    def test_con_filtros_vacios_la_suma_por_distrito_es_el_total_de_siniestros(self, client):
+        cuerpo = self._agregar(client, "distrito")
+        assert sum(d["siniestros"] for d in cuerpo["distritos"]) == self.TOTAL
+        assert cuerpo["total"] == self.TOTAL
+        assert len(cuerpo["distritos"]) == 103
+
+    @pytest.mark.parametrize(
+        "filtros",
+        [
+            {"fecha_inicio": "2025-01-01", "fecha_fin": "2025-12-31"},
+            {"tipo_siniestro": "Colisión", "departamento": "San Salvador"},
+            {"hora_inicio": "06:00", "hora_fin": "11:59", "tipo_vehiculo": "Motocicleta"},
+        ],
+    )
+    def test_con_un_mismo_filtro_el_total_de_las_dos_agregaciones_coincide(self, client, filtros):
+        hexagonos = self._agregar(client, "hex", **filtros)
+        distritos = self._agregar(client, "distrito", **filtros)
+        puntos = client.get("/api/v1/siniestros/puntos", params=filtros).json()
+        assert hexagonos["total"] == distritos["total"] == puntos["total"] > 0
+
+    def test_hexagonos_traen_conteo_distritos_y_seis_vertices(self, client):
+        h = self._agregar(client, "hex", departamento="San Salvador")["hexagonos"][0]
+        assert h["conteo"] > 0
+        assert h["distritos"] and all(isinstance(d, str) for d in h["distritos"])
+        assert len(h["vertices"]) == 6
+        assert 13 < h["centro"][0] < 15 and -91 < h["centro"][1] < -87
+
+    def test_distritos_traen_poblacion_y_tasa_por_10mil(self, client):
+        d = next(x for x in self._agregar(client, "distrito")["distritos"] if x["distrito_codigo"] == "san salvador")
+        assert d["departamento"] == "San Salvador"
+        assert d["poblacion"] > 0
+        assert d["tasa_por_10mil"] == pytest.approx(d["siniestros"] / d["poblacion"] * 10_000)
+
+    def test_un_filtro_sin_resultados_da_ceros_y_mantiene_los_103_distritos(self, client):
+        cuerpo = self._agregar(client, "distrito", fecha_inicio="2030-01-01")
+        assert cuerpo["total"] == 0
+        assert len(cuerpo["distritos"]) == 103
+        assert self._agregar(client, "hex", fecha_inicio="2030-01-01")["hexagonos"] == []
+
+    def test_las_agregaciones_no_tienen_el_tope_de_90000_puntos(self, client):
+        # Sin filtros el endpoint de puntos devuelve el máximo; las agregaciones siempre responden.
+        assert self._agregar(client, "hex")["total"] == self.TOTAL
+
+    def test_agregacion_desconocida_es_422(self, client):
+        r = client.get("/api/v1/siniestros/puntos", params={"agregacion": "circulo"})
+        assert r.status_code == 422
+
+    def test_sin_agregacion_sigue_devolviendo_puntos(self, client):
+        cuerpo = client.get("/api/v1/siniestros/puntos", params={"departamento": "Cabañas", "fecha_inicio": "2025-01-01", "fecha_fin": "2025-01-31"}).json()
+        assert "puntos" in cuerpo and "hexagonos" not in cuerpo
+
+
+class TestComposicionCausas:
+    FRANJAS = ["Madrugada (00-05)", "Manana (06-11)", "Tarde (12-17)", "Noche (18-23)"]
+
+    def test_endpoint_devuelve_las_cuatro_franjas_con_proporciones_que_suman_1(self, client):
+        cuerpo = client.get("/api/v1/composicion-causas").json()
+        assert cuerpo["periodo_inicio"] == "2022-01-01" and cuerpo["periodo_fin"] == "2024-12-31"
+        assert [f["franja"] for f in cuerpo["franjas"]] == self.FRANJAS
+        for f in cuerpo["franjas"]:
+            assert sum(c["proporcion"] for c in f["causas"]) == pytest.approx(1.0)
+            proporciones = [c["proporcion"] for c in f["causas"]]
+            assert proporciones == sorted(proporciones, reverse=True)
+            assert f["n_siniestros"] > 0
+
+    def test_los_nombres_de_causa_son_los_del_filtro_de_hotspots(self, client):
+        opciones = set(client.get("/api/v1/siniestros/opciones-filtro").json()["factores_causantes"])
+        for f in client.get("/api/v1/composicion-causas").json()["franjas"]:
+            assert {c["causa"] for c in f["causas"]} <= opciones
+        causas = {c["causa"] for f in client.get("/api/v1/composicion-causas").json()["franjas"] for c in f["causas"]}
+        assert "Estado de Ebriedad o Droga" in causas and "Distracción del Conductor" in causas
+
+    def test_la_ebriedad_pesa_mas_en_la_madrugada_que_en_la_tarde(self, client):
+        franjas = {f["franja"]: {c["causa"]: c["proporcion"] for c in f["causas"]} for f in client.get("/api/v1/composicion-causas").json()["franjas"]}
+        assert franjas["Madrugada (00-05)"]["Estado de Ebriedad o Droga"] > franjas["Tarde (12-17)"]["Estado de Ebriedad o Droga"]
+
+    def test_la_suma_por_causa_de_cada_prediccion_es_su_total_esperado(self, client):
+        r = client.post(
+            "/api/v1/predicciones",
+            json={"distritos": ["san salvador", "soyapango"], "fecha_inicio": "2024-06-15", "fecha_fin": "2024-06-16"},
+        )
+        celdas = r.json()["predicciones"]
+        assert len(celdas) == 16
+        for c in celdas:
+            assert sum(x["esperado"] for x in c["por_causa"]) == pytest.approx(c["siniestros_esperados"], rel=1e-9)
+            assert sum(x["proporcion"] for x in c["por_causa"]) == pytest.approx(1.0)
+            esperados = [x["esperado"] for x in c["por_causa"]]
+            assert esperados == sorted(esperados, reverse=True)
+
+    def test_por_causa_usa_la_composicion_de_la_franja_de_la_celda(self, client):
+        composicion = {f["franja"]: {c["causa"]: c["proporcion"] for c in f["causas"]} for f in client.get("/api/v1/composicion-causas").json()["franjas"]}
+        r = client.post(
+            "/api/v1/predicciones",
+            json={"distritos": ["san salvador"], "fecha_inicio": "2024-06-15", "fecha_fin": "2024-06-15", "franjas": ["Noche (18-23)"]},
+        )
+        celda = r.json()["predicciones"][0]
+        for x in celda["por_causa"]:
+            assert x["proporcion"] == pytest.approx(composicion["Noche (18-23)"][x["causa"]])

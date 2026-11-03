@@ -4,6 +4,7 @@ y validación de entrada."""
 from __future__ import annotations
 
 from datetime import date
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -57,6 +58,15 @@ class PrediccionRequest(BaseModel):
         "Si se omite, se usa la normal climatológica del distrito y mes.",
     )
 
+    factor_prcp: float | None = Field(
+        default=None,
+        ge=-1,
+        le=1,
+        description="Escenario relativo a la normal: la precipitación de cada distrito es "
+        "normal_del_distrito × (1 + factor_prcp), limitada al rango observado en el "
+        "entrenamiento. -1 = sin lluvia, 0 = normal, 1 = el doble. Excluyente con prcp_mensual.",
+    )
+
     @field_validator("fecha_inicio", "fecha_fin")
     @classmethod
     def _fecha_en_rango(cls, fecha: date) -> date:
@@ -64,6 +74,8 @@ class PrediccionRequest(BaseModel):
 
     @model_validator(mode="after")
     def _rango_valido(self) -> "PrediccionRequest":
+        if self.prcp_mensual is not None and self.factor_prcp is not None:
+            raise ValueError("Envíe prcp_mensual o factor_prcp, no ambos.")
         if self.fecha_fin < self.fecha_inicio:
             raise ValueError("fecha_fin no puede ser anterior a fecha_inicio.")
         dias = (self.fecha_fin - self.fecha_inicio).days + 1
@@ -75,6 +87,19 @@ class PrediccionRequest(BaseModel):
         if not self.franjas:
             raise ValueError("Debe especificarse al menos una franja horaria.")
         return self
+
+
+class RangoPrecipitacionOut(BaseModel):
+    minimo_mm: float
+    maximo_mm: float
+    anio_inicio: int
+    anio_fin: int
+
+
+class CausaEsperadaOut(BaseModel):
+    causa: str = Field(description="factor_causante, con el mismo texto que el filtro de hotspots.")
+    esperado: float = Field(description="siniestros_esperados × proporción de la causa en la franja.")
+    proporcion: float
 
 
 class PrediccionCeldaOut(BaseModel):
@@ -90,6 +115,12 @@ class PrediccionCeldaOut(BaseModel):
     prcp_mensual: float = Field(
         description="mm de precipitación mensual usados en la predicción (el valor enviado "
         "o la normal climatológica del distrito y mes)."
+    )
+    por_causa: list[CausaEsperadaOut] = Field(
+        default_factory=list,
+        description="Los siniestros esperados repartidos por causa según la proporción histórica "
+        "(2022-2024) de cada causa en la franja, de mayor a menor. La causa se conoce después del "
+        "siniestro: no es una variable del modelo. La suma de `esperado` es `siniestros_esperados`.",
     )
 
 
@@ -326,8 +357,68 @@ class SiniestrosPuntosResponse(BaseModel):
     puntos: list[SiniestroPuntoOut]
 
 
+AVISO_UBICACIONES_SIMULADAS = (
+    "Las ubicaciones del conjunto de datos son simuladas y no tienen precisión por "
+    "debajo de un kilómetro; por eso los siniestros se muestran agregados."
+)
+
+
+class HexagonoOut(BaseModel):
+    id: str
+    conteo: int
+    distritos: list[str] = Field(description="Distritos de los siniestros que caen en el hexágono.")
+    centro: tuple[float, float] = Field(description="(latitud, longitud)")
+    vertices: list[tuple[float, float]] = Field(description="6 vértices (latitud, longitud).")
+
+
+class SiniestrosHexResponse(BaseModel):
+    aviso: str = AVISO_UBICACIONES_SIMULADAS
+    agregacion: Literal["hex"] = "hex"
+    lado_km: float = Field(description="Lado del hexágono (no el ancho) en km.")
+    total: int = Field(description="Suma de los conteos: todos los siniestros del filtro.")
+    hexagonos: list[HexagonoOut]
+
+
+class DistritoAgregadoOut(BaseModel):
+    distrito_codigo: str
+    nombre: str
+    departamento: str
+    siniestros: int
+    poblacion: int
+    tasa_por_10mil: float = Field(description="Siniestros por cada 10,000 habitantes.")
+
+
+class SiniestrosDistritoResponse(BaseModel):
+    aviso: str = AVISO_UBICACIONES_SIMULADAS
+    agregacion: Literal["distrito"] = "distrito"
+    total: int = Field(description="Suma de los conteos: todos los siniestros del filtro.")
+    distritos: list[DistritoAgregadoOut] = Field(description="Los 103 distritos, también con conteo 0.")
+
+
 class OpcionesFiltroSiniestrosResponse(BaseModel):
     tipos_siniestro: list[str]
     tipos_vehiculo: list[str]
     factores_causantes: list[str]
     departamentos: list[str]
+
+
+class ProporcionCausaOut(BaseModel):
+    causa: str
+    proporcion: float
+
+
+class ComposicionFranjaOut(BaseModel):
+    franja: Franja
+    n_siniestros: int = Field(description="Siniestros de la franja en el periodo de entrenamiento.")
+    causas: list[ProporcionCausaOut] = Field(description="De mayor a menor; suman 1.")
+
+
+class ComposicionCausasResponse(BaseModel):
+    aviso: str = (
+        "Proporción histórica de cada causa por franja horaria en el periodo de entrenamiento. "
+        "La causa se conoce después del siniestro: no es una variable del modelo y estos valores "
+        "no indican la causa de un siniestro en particular."
+    )
+    periodo_inicio: date
+    periodo_fin: date
+    franjas: list[ComposicionFranjaOut]

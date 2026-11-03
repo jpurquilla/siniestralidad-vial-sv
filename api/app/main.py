@@ -7,11 +7,17 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.application.agregar_siniestros import AgregarSiniestros
+from app.application.composicion_causas import CalcularComposicionCausas
+from app.application.composicion_vehiculos import CalcularComposicionVehiculos
+from app.application.generar_informe_periodo import GenerarInformePeriodo
 from app.application.calcular_equidad import CalcularEquidad
 from app.application.predecir_celda import DistritoNoEncontradoError, PredecirCelda
 from app.application.ranking_distritos import RankingDistritos
@@ -26,6 +32,8 @@ from app.infrastructure.analitica.usuarios_vulnerables_adapter import (
 )
 from app.infrastructure.geo.distrito_repository import DistritoRepository
 from app.infrastructure.geo.geojson_adapter import GeoJsonAdapter
+from app.infrastructure.informes.renderer_excel import RendererExcel
+from app.infrastructure.informes.renderer_pdf import RendererPdf
 from app.infrastructure.modelo.calendario_adapter import CalendarioAdapter
 from app.infrastructure.modelo.clima_adapter import ClimaAdapter
 from app.infrastructure.modelo.exposicion_adapter import ExposicionAdapter
@@ -35,10 +43,13 @@ from app.infrastructure.modelo.parque_adapter import ParqueAdapter
 from app.infrastructure.modelo.tercil_repository import TercilRepository
 from app.infrastructure.modelo.xgboost_adapter import XGBoostFrecuenciaAdapter
 from app.infrastructure.web.routers import (
+    clima,
+    composicion_causas,
     comparacion_historica,
     distritos,
     equidad,
     impacto_ley,
+    informes,
     modelo,
     predicciones,
     ranking,
@@ -90,6 +101,9 @@ async def lifespan(app: FastAPI):
         # sola vez acá — nunca por request (ver docstring del adaptador).
         comparacion_historica_adapter.cargar_y_validar()
         siniestro_punto_repo.cargar_y_validar()
+        # Una sola vez al arrancar; queda en memoria (proporciones 2022-2024 por franja).
+        composicion = CalcularComposicionCausas(siniestro_punto_repo).ejecutar()
+        composicion_vehiculos = CalcularComposicionVehiculos(siniestro_punto_repo).ejecutar()
         info_modelo = cargar_info_modelo(
             settings.ruta_metricas_nb12,
             xgboost_adapter.version_modelo,
@@ -110,7 +124,9 @@ async def lifespan(app: FastAPI):
         calendario_adapter,
         exposicion_adapter,
         parque_adapter,
+        composicion,
     )
+    app.state.composicion_causas = composicion
     app.state.ranking_uc = RankingDistritos(
         xgboost_adapter,
         distrito_repo,
@@ -121,6 +137,7 @@ async def lifespan(app: FastAPI):
         tercil_repo,
     )
     app.state.distrito_repo = distrito_repo
+    app.state.clima_adapter = clima_adapter
     app.state.geojson_adapter = geojson_adapter
     app.state.info_modelo = info_modelo
     app.state.impacto_ley_adapter = impacto_ley_adapter
@@ -129,7 +146,21 @@ async def lifespan(app: FastAPI):
     app.state.calcular_equidad_uc = CalcularEquidad(
         comparacion_historica_adapter, distrito_repo, settings.umbral_pct_urbano_equidad
     )
+    zona_horaria = ZoneInfo(settings.zona_horaria)
+    app.state.generar_informe_periodo_uc = GenerarInformePeriodo(
+        app.state.predecir_celda_uc,
+        distrito_repo,
+        composicion,
+        composicion_vehiculos,
+        app.state.calcular_equidad_uc,
+        reloj=lambda: datetime.now(zona_horaria),
+    )
+    app.state.renderer_pdf = RendererPdf(settings.ruta_geojson_censo)
+    app.state.renderer_excel = RendererExcel()
     app.state.siniestro_punto_repo = siniestro_punto_repo
+    app.state.agregar_siniestros_uc = AgregarSiniestros(
+        siniestro_punto_repo, distrito_repo, settings.lado_hexagono_km
+    )
     app.state.estado_salud = {
         "estado": "ok",
         "modelo_cargado": True,
@@ -164,9 +195,12 @@ app.include_router(salud.router)
 app.include_router(modelo.router)
 app.include_router(distritos.router)
 app.include_router(predicciones.router)
+app.include_router(composicion_causas.router)
+app.include_router(clima.router)
 app.include_router(ranking.router)
 app.include_router(impacto_ley.router)
 app.include_router(usuarios_vulnerables.router)
 app.include_router(comparacion_historica.router)
 app.include_router(equidad.router)
 app.include_router(siniestros.router)
+app.include_router(informes.router)

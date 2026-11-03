@@ -38,6 +38,7 @@ class Tercil(str, Enum):
 class FuentePrecipitacion(str, Enum):
     OBSERVADA = "observada"
     NORMAL_CLIMATOLOGICA = "normal_climatologica"
+    ESCENARIO_RELATIVO = "escenario_relativo"  # normal del distrito × (1 + factor_prcp)
 
 
 class FuenteParque(str, Enum):
@@ -113,6 +114,44 @@ class FeaturesCelda:
 
 
 @dataclass(frozen=True)
+class ProporcionCausa:
+    causa: str  # factor_causante tal como aparece en el filtro del mapa de hotspots
+    proporcion: float  # 0-1; las de una franja suman 1
+
+
+@dataclass(frozen=True)
+class EsperadoPorCausa:
+    causa: str
+    esperado: float  # siniestros esperados de la celda × proporción de la causa
+    proporcion: float
+
+
+@dataclass(frozen=True)
+class ComposicionCausas:
+    """Proporción histórica de cada factor_causante en cada franja, calculada sobre el
+    periodo de entrenamiento (2022-2024) de siniestros.csv.
+
+    La causa se conoce DESPUÉS de que ocurre el siniestro: no es una variable del modelo.
+    Esta composición solo reparte la predicción ya hecha según cómo suelen distribuirse las
+    causas en la franja (en el conjunto de datos, la causa varía solo con la franja)."""
+
+    periodo_inicio: date
+    periodo_fin: date
+    n_siniestros: dict[Franja, int]
+    por_franja: dict[Franja, tuple[ProporcionCausa, ...]]  # de mayor a menor proporción
+
+    def proporciones(self, franja: Franja) -> tuple[ProporcionCausa, ...]:
+        return self.por_franja[franja]
+
+    def descomponer(self, esperado: float, franja: Franja) -> list[EsperadoPorCausa]:
+        """Reparte `esperado` entre las causas de la franja, de mayor a menor."""
+        return [
+            EsperadoPorCausa(causa=p.causa, esperado=esperado * p.proporcion, proporcion=p.proporcion)
+            for p in self.por_franja[franja]
+        ]
+
+
+@dataclass(frozen=True)
 class PrediccionCelda:
     distrito_codigo: str
     fecha: date
@@ -121,6 +160,7 @@ class PrediccionCelda:
     fuente_prcp: FuentePrecipitacion
     fuente_parque: FuenteParque
     prcp_mensual: float
+    por_causa: tuple[EsperadoPorCausa, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -238,6 +278,29 @@ class FiltroSiniestros:
     hora_fin: str | None = None  # "HH:MM"
     departamento: str | None = None
     distrito: str | None = None
+
+
+@dataclass(frozen=True)
+class HexagonoAgregado:
+    """Siniestros de un hexágono de la grilla (ver domain/hexagonos.py)."""
+
+    id: str
+    conteo: int
+    distritos: list[str]  # nombres de los distritos de los siniestros del hexágono
+    centro: tuple[float, float]  # (latitud, longitud)
+    vertices: list[tuple[float, float]]  # 6 vértices (latitud, longitud)
+
+
+@dataclass(frozen=True)
+class DistritoAgregado:
+    """Siniestros de un distrito del estudio, con su población y su tasa."""
+
+    distrito_codigo: str
+    nombre: str
+    departamento: str
+    siniestros: int
+    poblacion: int
+    tasa_por_10mil: float
 
 
 @dataclass(frozen=True)

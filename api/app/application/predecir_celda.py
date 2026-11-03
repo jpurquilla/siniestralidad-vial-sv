@@ -11,6 +11,7 @@ from datetime import date
 
 from app.domain import calendario
 from app.domain.models import (
+    ComposicionCausas,
     FeaturesCelda,
     Franja,
     FuenteParque,
@@ -39,6 +40,9 @@ class PeticionPrediccionCelda:
     fecha: date
     franja: Franja
     prcp_mensual: float | None = None  # None = usar normal climatológica
+    # Escenario relativo: prcp = normal del distrito × (1 + factor_prcp), limitada
+    # al rango observado en el entrenamiento. Excluyente con prcp_mensual.
+    factor_prcp: float | None = None
 
 
 class PredecirCelda:
@@ -50,6 +54,7 @@ class PredecirCelda:
         calendario_repo: CalendarioRepositoryPort,
         exposicion: ExposicionRepositoryPort,
         parque: ParqueRepositoryPort,
+        composicion_causas: ComposicionCausas,
     ) -> None:
         self._predictor = predictor
         self._distritos = distritos
@@ -57,6 +62,7 @@ class PredecirCelda:
         self._calendario = calendario_repo
         self._exposicion = exposicion
         self._parque = parque
+        self._composicion_causas = composicion_causas
 
     def construir_features(
         self, peticion: PeticionPrediccionCelda
@@ -65,9 +71,17 @@ class PredecirCelda:
         if distrito is None:
             raise DistritoNoEncontradoError(peticion.distrito_codigo)
 
+        if peticion.prcp_mensual is not None and peticion.factor_prcp is not None:
+            raise ValueError("prcp_mensual y factor_prcp son excluyentes.")
+
         if peticion.prcp_mensual is not None:
             prcp_mensual = peticion.prcp_mensual
             fuente_prcp = FuentePrecipitacion.OBSERVADA
+        elif peticion.factor_prcp is not None:
+            normal = self._clima.normal_climatologica(distrito.codigo, peticion.fecha.month)
+            minimo, maximo = self._clima.rango_entrenamiento()
+            prcp_mensual = min(maximo, max(minimo, normal * (1 + peticion.factor_prcp)))
+            fuente_prcp = FuentePrecipitacion.ESCENARIO_RELATIVO
         else:
             prcp_mensual = self._clima.normal_climatologica(distrito.codigo, peticion.fecha.month)
             fuente_prcp = FuentePrecipitacion.NORMAL_CLIMATOLOGICA
@@ -96,6 +110,20 @@ class PredecirCelda:
     def ejecutar(self, peticion: PeticionPrediccionCelda) -> PrediccionCelda:
         return self.ejecutar_lote([peticion])[0]
 
+    def esperados_lote(
+        self, peticiones: list[PeticionPrediccionCelda]
+    ) -> list[tuple[float, FuenteParque]]:
+        """Solo el esperado y la fuente del parque de cada celda, con UNA llamada vectorizada
+        al predictor. Mismos features y mismo resultado que `ejecutar_lote`, pero sin
+        construir el desglose por causa de cada celda (el informe por periodo lo hace sobre
+        los totales por franja, no celda a celda)."""
+        construidas = [self.construir_features(p) for p in peticiones]
+        esperados = self._predictor.predecir_lote([features for features, _, _ in construidas])
+        return [
+            (esperado, fuente_parque)
+            for (_, _, fuente_parque), esperado in zip(construidas, esperados, strict=True)
+        ]
+
     def ejecutar_lote(self, peticiones: list[PeticionPrediccionCelda]) -> list[PrediccionCelda]:
         """Predice todas las celdas con UNA sola llamada al predictor
         (vectorizada), en el mismo orden que `peticiones`."""
@@ -110,6 +138,7 @@ class PredecirCelda:
                 fuente_prcp=fuente_prcp,
                 fuente_parque=fuente_parque,
                 prcp_mensual=features.prcp_mensual,
+                por_causa=tuple(self._composicion_causas.descomponer(esperado, peticion.franja)),
             )
             for peticion, (features, fuente_prcp, fuente_parque), esperado in zip(
                 peticiones, construidas, esperados, strict=True

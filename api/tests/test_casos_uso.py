@@ -17,11 +17,13 @@ from app.application.predecir_celda import (
 )
 from app.application.ranking_distritos import PeticionRanking, RankingDistritos
 from app.domain.models import (
+    ComposicionCausas,
     Distrito,
     FeaturesCelda,
     Franja,
     FuenteParque,
     FuentePrecipitacion,
+    ProporcionCausa,
     Tercil,
 )
 
@@ -57,6 +59,17 @@ class DistritoRepositorioFalso:
 class ClimaFalso:
     def normal_climatologica(self, distrito_codigo, mes):
         return 42.0
+
+    def rango_entrenamiento(self):
+        return (0.0, 100.0)
+
+
+COMPOSICION_FALSA = ComposicionCausas(
+    periodo_inicio=date(2022, 1, 1),
+    periodo_fin=date(2024, 12, 31),
+    n_siniestros={f: 10 for f in Franja},
+    por_franja={f: (ProporcionCausa("A", 0.75), ProporcionCausa("B", 0.25)) for f in Franja},
+)
 
 
 class CalendarioFalso:
@@ -121,7 +134,7 @@ class TestPredecirCelda:
     def test_usa_prcp_enviado_por_el_cliente(self):
         predictor = PredictorFalso()
         caso_uso = PredecirCelda(
-            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso()
+            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
         )
         peticion = PeticionPrediccionCelda(
             distrito_codigo="san salvador", fecha=date(2024, 6, 15), franja=Franja.TARDE, prcp_mensual=99.0
@@ -134,7 +147,7 @@ class TestPredecirCelda:
     def test_usa_normal_climatologica_si_no_se_envia_prcp(self):
         predictor = PredictorFalso()
         caso_uso = PredecirCelda(
-            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso()
+            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
         )
         peticion = PeticionPrediccionCelda(
             distrito_codigo="san salvador", fecha=date(2024, 6, 15), franja=Franja.TARDE
@@ -144,10 +157,40 @@ class TestPredecirCelda:
         assert resultado.fuente_prcp == FuentePrecipitacion.NORMAL_CLIMATOLOGICA
         assert predictor.filas_recibidas[0].prcp_mensual == 42.0
 
+    @pytest.mark.parametrize(
+        ("factor", "esperado"), [(0.5, 63.0), (-1.0, 0.0), (1.0, 84.0), (3.0, 100.0)]
+    )
+    def test_factor_prcp_escala_la_normal_y_se_limita_al_rango(self, factor, esperado):
+        predictor = PredictorFalso()
+        caso_uso = PredecirCelda(
+            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
+        )
+        peticion = PeticionPrediccionCelda(
+            distrito_codigo="san salvador", fecha=date(2024, 6, 15), franja=Franja.TARDE, factor_prcp=factor
+        )
+        resultado = caso_uso.ejecutar(peticion)
+
+        assert resultado.fuente_prcp == FuentePrecipitacion.ESCENARIO_RELATIVO
+        assert predictor.filas_recibidas[0].prcp_mensual == pytest.approx(esperado)
+
+    def test_por_causa_reparte_la_prediccion_segun_la_composicion_de_la_franja(self):
+        caso_uso = PredecirCelda(
+            PredictorFalso([2.0]), DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
+        )
+        resultado = caso_uso.ejecutar(
+            PeticionPrediccionCelda(distrito_codigo="san salvador", fecha=date(2024, 6, 15), franja=Franja.NOCHE)
+        )
+
+        assert [(c.causa, c.esperado, c.proporcion) for c in resultado.por_causa] == [
+            ("A", pytest.approx(1.5), 0.75),
+            ("B", pytest.approx(0.5), 0.25),
+        ]
+        assert sum(c.esperado for c in resultado.por_causa) == pytest.approx(resultado.siniestros_esperados)
+
     def test_periodo_agostino_y_feriado_el_6_de_agosto(self):
         predictor = PredictorFalso()
         caso_uso = PredecirCelda(
-            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso()
+            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
         )
         peticion = PeticionPrediccionCelda(
             distrito_codigo="san salvador", fecha=date(2024, 8, 6), franja=Franja.TARDE
@@ -161,7 +204,7 @@ class TestPredecirCelda:
     def test_features_incluyen_franja_parque_y_censales(self):
         predictor = PredictorFalso()
         caso_uso = PredecirCelda(
-            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso()
+            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
         )
         resultado = caso_uso.ejecutar(
             PeticionPrediccionCelda("san salvador", date(2024, 6, 15), Franja.NOCHE)
@@ -177,7 +220,7 @@ class TestPredecirCelda:
 
     def test_fecha_fuera_de_rango_declara_ultimo_disponible(self):
         caso_uso = PredecirCelda(
-            PredictorFalso(), DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso()
+            PredictorFalso(), DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
         )
         resultado = caso_uso.ejecutar(
             PeticionPrediccionCelda("san salvador", date(2030, 1, 1), Franja.TARDE)
@@ -193,7 +236,7 @@ class TestPredecirCelda:
                 return super().predecir_lote(filas)
 
         caso_uso = PredecirCelda(
-            PredictorContador(), DistritoRepositorioFalso([_SAN_SALVADOR, _ACAJUTLA]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso()
+            PredictorContador(), DistritoRepositorioFalso([_SAN_SALVADOR, _ACAJUTLA]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
         )
         peticiones = [
             PeticionPrediccionCelda(d, date(2024, 6, 15), f)
@@ -207,7 +250,7 @@ class TestPredecirCelda:
 
     def test_distrito_desconocido_lanza_error_de_dominio(self):
         caso_uso = PredecirCelda(
-            PredictorFalso(), DistritoRepositorioFalso([]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso()
+            PredictorFalso(), DistritoRepositorioFalso([]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
         )
         peticion = PeticionPrediccionCelda(
             distrito_codigo="no_existe", fecha=date(2024, 1, 1), franja=Franja.TARDE

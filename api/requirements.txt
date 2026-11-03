@@ -18,7 +18,18 @@ pydantic==2.13.5
 pydantic-settings==2.15.0
 
 # ============================================================
+# Informe por periodo (PDF)
+# ============================================================
+# Jinja2 + WeasyPrint: el PDF se maqueta como HTML/CSS (paginación, encabezado y pie
+# repetidos, fuentes incrustadas, SVG vectorial). Descartados: reportlab/fpdf (maquetar a
+# mano) y navegador headless (exige Chromium). WeasyPrint necesita pango en el sistema:
+# `brew install pango` (macOS) / `apt install libpango-1.0-0 libpangoft2-1.0-0` (Debian).
+weasyprint==70.0
+jinja2==3.1.6
+
+# ============================================================
 # Tests
 # ============================================================
 pytest==9.1.1
 httpx==0.28.1            # usado por fastapi.testclient.TestClient
+pypdf==6.21.4            # SOLO tests: extrae el texto del PDF del informe y comprueba las fuentes incrustadas
