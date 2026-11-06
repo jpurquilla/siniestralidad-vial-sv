@@ -16,7 +16,16 @@ from app.application.predecir_celda import (
     PredecirCelda,
 )
 from app.application.ranking_distritos import PeticionRanking, RankingDistritos
-from app.domain.models import Distrito, FeaturesCelda, Franja, FuentePrecipitacion, Tercil
+from app.domain.models import (
+    ComposicionCausas,
+    Distrito,
+    FeaturesCelda,
+    Franja,
+    FuenteParque,
+    FuentePrecipitacion,
+    ProporcionCausa,
+    Tercil,
+)
 
 
 class PredictorFalso:
@@ -51,6 +60,17 @@ class ClimaFalso:
     def normal_climatologica(self, distrito_codigo, mes):
         return 42.0
 
+    def rango_entrenamiento(self):
+        return (0.0, 100.0)
+
+
+COMPOSICION_FALSA = ComposicionCausas(
+    periodo_inicio=date(2022, 1, 1),
+    periodo_fin=date(2024, 12, 31),
+    n_siniestros={f: 10 for f in Franja},
+    por_franja={f: (ProporcionCausa("A", 0.75), ProporcionCausa("B", 0.25)) for f in Franja},
+)
+
 
 class CalendarioFalso:
     def es_feriado(self, fecha, distrito_codigo):
@@ -60,6 +80,27 @@ class CalendarioFalso:
 class ExposicionFalso:
     def log_exposicion_v2(self, distrito_codigo, fecha):
         return 10.0
+
+
+class ParqueFalso:
+    def crec_parque_12m(self, distrito_codigo, fecha):
+        if fecha.year > 2026:
+            return 0.05, FuenteParque.ULTIMO_DISPONIBLE
+        return 0.04, FuenteParque.OBSERVADO
+
+
+class PredictorPorFranja:
+    """Predice según franja_cod y pct_urbano: permite probar que el ranking
+    cambia cuando cambian las franjas pedidas."""
+
+    # Madrugada es la menor; el distrito urbano pesa más de noche y el otro de madrugada.
+    def predecir_lote(self, filas):
+        return [
+            (1.0 + f.franja_cod) * (2.0 if f.pct_urbano > 0.9 else 1.0)
+            if f.franja_cod != 0
+            else 5.0 * (1.0 if f.pct_urbano > 0.9 else 2.0)
+            for f in filas
+        ]
 
 
 class TercilFalso:
@@ -74,6 +115,8 @@ _SAN_SALVADOR = Distrito(
     pct_urbano=0.9965,
     poblacion=330543,
     poblacion_baja=False,
+    pct_hogares_auto=0.50626,
+    pct_trabaja_otro_lugar=0.129056,
 )
 _ACAJUTLA = Distrito(
     codigo="acajutla",
@@ -82,6 +125,8 @@ _ACAJUTLA = Distrito(
     pct_urbano=0.6622,
     poblacion=55307,
     poblacion_baja=False,
+    pct_hogares_auto=0.50626,
+    pct_trabaja_otro_lugar=0.129056,
 )
 
 
@@ -89,7 +134,7 @@ class TestPredecirCelda:
     def test_usa_prcp_enviado_por_el_cliente(self):
         predictor = PredictorFalso()
         caso_uso = PredecirCelda(
-            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso()
+            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
         )
         peticion = PeticionPrediccionCelda(
             distrito_codigo="san salvador", fecha=date(2024, 6, 15), franja=Franja.TARDE, prcp_mensual=99.0
@@ -102,7 +147,7 @@ class TestPredecirCelda:
     def test_usa_normal_climatologica_si_no_se_envia_prcp(self):
         predictor = PredictorFalso()
         caso_uso = PredecirCelda(
-            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso()
+            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
         )
         peticion = PeticionPrediccionCelda(
             distrito_codigo="san salvador", fecha=date(2024, 6, 15), franja=Franja.TARDE
@@ -112,10 +157,40 @@ class TestPredecirCelda:
         assert resultado.fuente_prcp == FuentePrecipitacion.NORMAL_CLIMATOLOGICA
         assert predictor.filas_recibidas[0].prcp_mensual == 42.0
 
+    @pytest.mark.parametrize(
+        ("factor", "esperado"), [(0.5, 63.0), (-1.0, 0.0), (1.0, 84.0), (3.0, 100.0)]
+    )
+    def test_factor_prcp_escala_la_normal_y_se_limita_al_rango(self, factor, esperado):
+        predictor = PredictorFalso()
+        caso_uso = PredecirCelda(
+            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
+        )
+        peticion = PeticionPrediccionCelda(
+            distrito_codigo="san salvador", fecha=date(2024, 6, 15), franja=Franja.TARDE, factor_prcp=factor
+        )
+        resultado = caso_uso.ejecutar(peticion)
+
+        assert resultado.fuente_prcp == FuentePrecipitacion.ESCENARIO_RELATIVO
+        assert predictor.filas_recibidas[0].prcp_mensual == pytest.approx(esperado)
+
+    def test_por_causa_reparte_la_prediccion_segun_la_composicion_de_la_franja(self):
+        caso_uso = PredecirCelda(
+            PredictorFalso([2.0]), DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
+        )
+        resultado = caso_uso.ejecutar(
+            PeticionPrediccionCelda(distrito_codigo="san salvador", fecha=date(2024, 6, 15), franja=Franja.NOCHE)
+        )
+
+        assert [(c.causa, c.esperado, c.proporcion) for c in resultado.por_causa] == [
+            ("A", pytest.approx(1.5), 0.75),
+            ("B", pytest.approx(0.5), 0.25),
+        ]
+        assert sum(c.esperado for c in resultado.por_causa) == pytest.approx(resultado.siniestros_esperados)
+
     def test_periodo_agostino_y_feriado_el_6_de_agosto(self):
         predictor = PredictorFalso()
         caso_uso = PredecirCelda(
-            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso()
+            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
         )
         peticion = PeticionPrediccionCelda(
             distrito_codigo="san salvador", fecha=date(2024, 8, 6), franja=Franja.TARDE
@@ -126,9 +201,56 @@ class TestPredecirCelda:
         assert fila.periodo_agostino == 1
         assert fila.es_feriado == 1
 
+    def test_features_incluyen_franja_parque_y_censales(self):
+        predictor = PredictorFalso()
+        caso_uso = PredecirCelda(
+            predictor, DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
+        )
+        resultado = caso_uso.ejecutar(
+            PeticionPrediccionCelda("san salvador", date(2024, 6, 15), Franja.NOCHE)
+        )
+
+        fila = predictor.filas_recibidas[0]
+        assert fila.franja_cod == 3
+        assert fila.crec_parque_12m == 0.04
+        assert fila.pct_hogares_auto == 0.50626
+        assert fila.pct_trabaja_otro_lugar == 0.129056
+        assert len(fila.como_lista()) == 12
+        assert resultado.fuente_parque == FuenteParque.OBSERVADO
+
+    def test_fecha_fuera_de_rango_declara_ultimo_disponible(self):
+        caso_uso = PredecirCelda(
+            PredictorFalso(), DistritoRepositorioFalso([_SAN_SALVADOR]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
+        )
+        resultado = caso_uso.ejecutar(
+            PeticionPrediccionCelda("san salvador", date(2030, 1, 1), Franja.TARDE)
+        )
+        assert resultado.fuente_parque == FuenteParque.ULTIMO_DISPONIBLE
+
+    def test_ejecutar_lote_llama_al_predictor_una_sola_vez(self):
+        llamadas = []
+
+        class PredictorContador(PredictorFalso):
+            def predecir_lote(self, filas):
+                llamadas.append(len(filas))
+                return super().predecir_lote(filas)
+
+        caso_uso = PredecirCelda(
+            PredictorContador(), DistritoRepositorioFalso([_SAN_SALVADOR, _ACAJUTLA]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
+        )
+        peticiones = [
+            PeticionPrediccionCelda(d, date(2024, 6, 15), f)
+            for d in ("san salvador", "acajutla")
+            for f in Franja
+        ]
+        resultados = caso_uso.ejecutar_lote(peticiones)
+
+        assert llamadas == [8]
+        assert [r.franja for r in resultados] == [p.franja for p in peticiones]
+
     def test_distrito_desconocido_lanza_error_de_dominio(self):
         caso_uso = PredecirCelda(
-            PredictorFalso(), DistritoRepositorioFalso([]), ClimaFalso(), CalendarioFalso(), ExposicionFalso()
+            PredictorFalso(), DistritoRepositorioFalso([]), ClimaFalso(), CalendarioFalso(), ExposicionFalso(), ParqueFalso(), COMPOSICION_FALSA
         )
         peticion = PeticionPrediccionCelda(
             distrito_codigo="no_existe", fecha=date(2024, 1, 1), franja=Franja.TARDE
@@ -146,6 +268,7 @@ class TestRankingDistritos:
             ClimaFalso(),
             CalendarioFalso(),
             ExposicionFalso(),
+            ParqueFalso(),
             TercilFalso(),
         )
         peticion = PeticionRanking(fecha_inicio=date(2024, 1, 1), fecha_fin=date(2024, 1, 1))
@@ -164,6 +287,7 @@ class TestRankingDistritos:
             ClimaFalso(),
             CalendarioFalso(),
             ExposicionFalso(),
+            ParqueFalso(),
             TercilFalso(),
         )
         peticion = PeticionRanking(fecha_inicio=date(2024, 1, 1), fecha_fin=date(2024, 1, 2))
@@ -171,3 +295,35 @@ class TestRankingDistritos:
 
         # 2 dias x 4 franjas = 8 filas enviadas al predictor
         assert len(predictor.filas_recibidas) == 8
+
+    def test_cada_franja_envia_su_propio_codigo(self):
+        predictor = PredictorFalso()
+        caso_uso = RankingDistritos(
+            predictor,
+            DistritoRepositorioFalso([_SAN_SALVADOR]),
+            ClimaFalso(),
+            CalendarioFalso(),
+            ExposicionFalso(),
+            ParqueFalso(),
+            TercilFalso(),
+        )
+        caso_uso.ejecutar(PeticionRanking(fecha_inicio=date(2024, 1, 1), fecha_fin=date(2024, 1, 1)))
+
+        assert [f.franja_cod for f in predictor.filas_recibidas] == [0, 1, 2, 3]
+
+    def test_el_ranking_cambia_segun_las_franjas_pedidas(self):
+        caso_uso = RankingDistritos(
+            PredictorPorFranja(),
+            DistritoRepositorioFalso([_SAN_SALVADOR, _ACAJUTLA]),
+            ClimaFalso(),
+            CalendarioFalso(),
+            ExposicionFalso(),
+            ParqueFalso(),
+            TercilFalso(),
+        )
+        dia = date(2024, 1, 1)
+        solo_madrugada = caso_uso.ejecutar(PeticionRanking(dia, dia, franjas=(Franja.MADRUGADA,)))
+        solo_noche = caso_uso.ejecutar(PeticionRanking(dia, dia, franjas=(Franja.NOCHE,)))
+
+        assert solo_madrugada[0].distrito_codigo == "acajutla"
+        assert solo_noche[0].distrito_codigo == "san salvador"

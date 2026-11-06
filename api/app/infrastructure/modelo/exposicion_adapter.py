@@ -3,8 +3,8 @@ por distrito) + ln(factor_crec(fecha)) (NB05, tendencia CAGR).
 
 log_exposicion_v2 es la pieza que junto con log_tasa_base (ver
 xgboost_adapter.py) compone el base_margin del modelo de frecuencia. La base
-por distrito se lee de matriz_frecuencia_v2.csv (es constante por distrito
-en todo el histórico); g_mensual y el origen temporal de la tendencia se leen
+por distrito se lee de matriz_frecuencia_v3.csv.gz (es constante por distrito
+en todo el histórico; pandas infiere la compresión por la extensión); g_mensual y el origen temporal de la tendencia se leen
 de nb05_especificacion_v2.json, nunca se hardcodean.
 """
 

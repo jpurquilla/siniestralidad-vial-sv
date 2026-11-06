@@ -1,0 +1,35 @@
+{# Portada del informe por periodo. Variables: periodo_texto, dias, total, ic_inf, ic_sup, mapa_svg, leyenda,
+   top_texto, filtros (lista de pares), generado, logo_svg #}
+<section class="portada">
+  <header class="marca">
+    <span class="logo">{{ logo_svg | safe }}</span>
+    <span class="marca-nombre">Radar Vial SV</span>
+  </header>
+
+  <div class="titulo">
+    <h1>Siniestros esperados</h1>
+    <p class="periodo">{{ periodo_texto }}</p>
+  </div>
+
+  <figure class="mapa">
+    {{ mapa_svg | safe }}
+    <figcaption>
+      <span class="leyenda-titulo">Siniestros esperados por distrito en el periodo</span>
+      <span class="leyenda">
+        {% for c in leyenda %}<span class="paso"><i style="background:{{ c.color }}"></i>{{ c.etiqueta }}</span>{% endfor %}
+        <span class="paso"><i class="fuera"></i>Fuera del estudio</span>
+      </span>
+    </figcaption>
+  </figure>
+
+  <div class="cifra">
+    <p class="numero">{{ total }}</p>
+    <p class="total">siniestros esperados en {{ dias }} días</p>
+    <p class="rango">Entre {{ ic_inf }} y {{ ic_sup }} con 90% de probabilidad. {{ top_texto }}</p>
+  </div>
+
+  <dl class="ficha">
+    {% for k, v in filtros %}<div><dt>{{ k }}</dt><dd>{{ v }}</dd></div>{% endfor %}
+    <div><dt>Generado</dt><dd>{{ generado }}</dd></div>
+  </dl>
+</section>

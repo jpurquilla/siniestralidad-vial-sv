@@ -1,11 +1,12 @@
-"""Caso de uso: panel de equidad — calibración (sum(observado)/sum(predicho))
+"""Caso de uso: panel de equidad — calibración (sum(predicho)/sum(observado);
+; >1 = el modelo sobreestima)
 y Spearman de orden predicho-vs-observado dentro de dos cortes ya
 establecidos en el proyecto (nunca inventados acá):
 
 - Urbano/rural, por el mismo umbral de `pct_urbano` que NB08 §4
   (0.3 — ver `settings.umbral_pct_urbano_equidad`).
 - Alta/baja densidad poblacional, por el flag `poblacion_baja` que el
-  propio modelo de NB07 ya usa como variable.
+  propio modelo final (NB12) ya usa como variable.
 
 Python puro: usa `statistics.correlation(..., method="ranked")` (stdlib,
 Python 3.12+) para Spearman — no hace falta scipy."""
@@ -31,7 +32,7 @@ def _calcular_grupo(nombre: str, comparaciones: list[ComparacionDistrito]) -> Gr
 
     total_observado = sum(c.observado for c in comparaciones)
     total_predicho = sum(c.predicho for c in comparaciones)
-    calibracion = total_observado / total_predicho if total_predicho else 0.0
+    calibracion = total_predicho / total_observado if total_observado else 0.0
 
     if len(comparaciones) > 1:
         observados = [c.observado for c in comparaciones]

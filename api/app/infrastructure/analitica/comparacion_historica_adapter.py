@@ -1,5 +1,5 @@
 """Adaptador de comparación histórica: observado real (columna `n_siniestros`
-de matriz_frecuencia_v2.csv) contra predicho por el modelo de NB07, sumados
+de matriz_frecuencia_v3.csv.gz) contra predicho por el modelo final de NB12, sumados
 por distrito sobre la partición de PRUEBA del histórico (224,952 filas,
 2025-2026).
 
@@ -27,6 +27,7 @@ silencioso que ese diseño existe para prevenir."""
 from __future__ import annotations
 
 import csv
+import gzip
 from pathlib import Path
 
 from app.domain.models import ComparacionDistrito, FeaturesCelda
@@ -43,6 +44,10 @@ _COLUMNAS_REQUERIDAS = {
     "prcp_mensual",
     "pct_urbano",
     "poblacion_baja",
+    "franja_cod",
+    "crec_parque_12m",
+    "pct_hogares_auto",
+    "pct_trabaja_otro_lugar",
     "log_exposicion_v2",
     "split",
 }
@@ -51,7 +56,7 @@ _PARTICION_DIAGNOSTICO = "test"
 
 
 class ComparacionHistoricaRepositoryError(RuntimeError):
-    """`matriz_frecuencia_v2.csv` no existe o no tiene las columnas esperadas."""
+    """`matriz_frecuencia_v3.csv.gz` no existe o no tiene las columnas esperadas."""
 
 
 def _fila_a_features(fila: dict[str, str]) -> FeaturesCelda:
@@ -64,6 +69,10 @@ def _fila_a_features(fila: dict[str, str]) -> FeaturesCelda:
         prcp_mensual=float(fila["prcp_mensual"]),
         pct_urbano=float(fila["pct_urbano"]),
         poblacion_baja=int(fila["poblacion_baja"]),
+        franja_cod=int(fila["franja_cod"]),
+        crec_parque_12m=float(fila["crec_parque_12m"]),
+        pct_hogares_auto=float(fila["pct_hogares_auto"]),
+        pct_trabaja_otro_lugar=float(fila["pct_trabaja_otro_lugar"]),
         log_exposicion_v2=float(fila["log_exposicion_v2"]),
     )
 
@@ -83,7 +92,9 @@ class ComparacionHistoricaAdapter:
         observado_por_distrito: list[float] = []
         filas_por_distrito: list[list[FeaturesCelda]] = []
 
-        with self._ruta.open(encoding="utf-8") as fh:
+        # La matriz v3 se versiona comprimida (.gz): se abre como texto.
+        abrir = gzip.open if self._ruta.suffix == ".gz" else open
+        with abrir(self._ruta, "rt", encoding="utf-8", newline="") as fh:
             lector = csv.DictReader(fh)
             faltantes = _COLUMNAS_REQUERIDAS - set(lector.fieldnames or [])
             if faltantes:

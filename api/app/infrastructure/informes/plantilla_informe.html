@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Informe de siniestros esperados — {{ periodo }}</title>
+</head>
+<body>
+<div class="cadenas"><span class="titulo">Radar Vial SV · Informe de siniestros esperados</span><span class="periodo">{{ periodo_corto }}</span></div>
+
+<!-- 1. Portada (portada.html; el aviso de datos sintéticos va solo en el pie de página) -->
+{% include "portada.html" %}
+
+<!-- 2. Resumen -->
+<section class="seccion">
+  <h2>Resumen</h2>
+  <p class="resumen">{{ i.resumen.texto }}</p>
+  <div class="tabla-bloque">
+    <p class="rotulo">Tabla 1. Resumen</p>
+    <table class="resumen-tabla">
+      <tbody>
+      {% for f in i.resumen.filas %}
+        <tr><th scope="row">{{ f.etiqueta }}</th><td>{{ f.valor }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="fuente">{{ fuente }}</p>
+  </div>
+
+  <!-- 3. Prioridades -->
+  <h2 class="siguiente">Dónde y cuándo concentrar los controles</h2>
+  <div class="tabla-bloque">
+    <p class="rotulo">Tabla 2. {{ 'La combinación' if i.prioridades|length == 1 else 'Las ' ~ i.prioridades|length ~ ' combinaciones' }} de distrito, franja y día de la semana con más siniestros esperados por día</p>
+    <table>
+      <thead><tr><th>#</th><th>Distrito</th><th>Franja horaria</th><th>Día de la semana</th><th class="num">Esperado por día</th><th class="num">Veces en el periodo</th></tr></thead>
+      <tbody>
+      {% for pr in i.prioridades %}
+        <tr><td>{{ loop.index }}</td><td><strong>{{ pr.distrito }}</strong></td><td>{{ etiqueta_franja(pr.franja) }}</td><td>{{ pr.dia_semana }}</td><td class="num">{{ numero(pr.esperado) }}</td><td class="num">{{ pr.veces }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="fuente">{{ fuente }}</p>
+  </div>
+</section>
+
+<!-- 4. Causas -->
+<section class="seccion">
+  <h2>Causas</h2>
+  <figure>
+    <figcaption>Figura 1. Siniestros esperados por causa en el periodo</figcaption>
+    {{ svg_causas }}
+    <p class="nota">Línea: rango del 90%.</p>
+    <p class="fuente">{{ fuente }}</p>
+  </figure>
+  <figure>
+    <figcaption>Figura 2. Composición de causas por franja horaria</figcaption>
+    {{ svg_composicion }}
+    <p class="fuente">{{ fuente }}</p>
+  </figure>
+</section>
+
+<!-- 5. Distribución temporal -->
+<section class="seccion">
+  <h2>Distribución temporal</h2>
+  <figure>
+    <figcaption>Figura 3. Siniestros esperados por día de la semana (promedio por día)</figcaption>
+    {{ svg_dias }}
+    <p class="nota">Veces que aparece cada día en el periodo: {{ veces_dias }}.</p>
+    <p class="fuente">{{ fuente }}</p>
+  </figure>
+  <figure>
+    <figcaption>Figura 4. Siniestros esperados por distrito y franja horaria (mapa de calor, {{ distritos_mapa }} {{ 'distrito' if distritos_mapa == 1 else 'distritos' }})</figcaption>
+    {{ svg_calor }}
+    <p class="fuente">{{ fuente }}</p>
+  </figure>
+</section>
+
+<!-- 6. Tabla de distritos -->
+<section class="seccion">
+  <h2>Todos los distritos</h2>
+  <p class="rotulo">Tabla 3. Siniestros esperados por distrito ({{ i.por_distrito|length }} {{ 'distrito' if i.por_distrito|length == 1 else 'distritos' }}, de mayor a menor)</p>
+  <table class="larga">
+    <thead><tr><th>#</th><th>Distrito</th><th>Departamento</th><th class="num">Esperado</th><th class="num">Rango del 90%</th><th>Tercil</th><th class="num">Tasa por 10 mil hab.</th></tr></thead>
+    <tbody>
+    {% for f in i.por_distrito %}
+      <tr>
+        <td>{{ loop.index }}</td><td><strong>{{ f.distrito }}</strong></td><td>{{ f.departamento }}</td>
+        <td class="num">{{ numero(f.esperado) }}</td>
+        <td class="num">{{ entero(f.ic90_inf) }}–{{ entero(f.ic90_sup) }}</td>
+        <td><span class="chip {{ f.tercil.value }}">{{ f.tercil.value|capitalize }}</span></td>
+        <td class="num">{{ numero(f.tasa_10mil_hab, 2) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="fuente">{{ fuente }}</p>
+</section>
+
+<!-- 7. Supuestos y limitaciones (listas con marcador como texto real: ver README) -->
+<section class="seccion">
+  <h2>Supuestos y limitaciones</h2>
+  <h3>Supuestos</h3>
+  <div class="lista">
+    {% for s in supuestos %}<p class="item"><span class="vineta">•&nbsp;</span>{{ s }}</p>{% endfor %}
+  </div>
+  <h3>Limitaciones</h3>
+  <div class="lista">
+    {% for l in i.limitaciones %}<p class="item"><span class="vineta">{{ loop.index }}.&nbsp;</span>{{ l }}</p>{% endfor %}
+  </div>
+</section>
+</body>
+</html>

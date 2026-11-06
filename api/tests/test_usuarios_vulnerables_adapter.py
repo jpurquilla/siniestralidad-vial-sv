@@ -28,10 +28,10 @@ class TestRepartoPorTipo:
     def test_excluye_sin_victimas(self, adapter):
         tipos = {r.tipo for r in adapter.reparto_por_tipo()}
         assert "Sin victimas" not in tipos
-        assert tipos == {"Peaton", "Motociclista", "Ciclista", "Otro"}
+        assert tipos == {"Peatón", "Motociclista", "Ciclista", "Otro"}
 
     def test_peaton_coincide_con_nb09_resumen(self, adapter):
-        fila = next(r for r in adapter.reparto_por_tipo() if r.tipo == "Peaton")
+        fila = next(r for r in adapter.reparto_por_tipo() if r.tipo == "Peatón")
         assert fila.pct_fatales == pytest.approx(42.47, abs=0.01)
         assert fila.letalidad_por_siniestro == pytest.approx(0.2294, abs=0.0001)
 

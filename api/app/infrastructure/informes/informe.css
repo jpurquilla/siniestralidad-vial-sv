@@ -1,0 +1,72 @@
+/* Estilo del PDF del informe: Public Sans (OFL) y la paleta de la portada (tinta #14202E, secundario #4A5565,
+   azul #12355B, líneas #D5DAE1, ámbar #E3A21A solo para la ebriedad). Sin mayúsculas pequeñas. Tamaño carta. */
+@font-face { font-family: "Public Sans"; font-weight: 400; font-style: normal; src: url("fuentes/PublicSans-400.ttf") format("truetype"); }
+@font-face { font-family: "Public Sans"; font-weight: 500; font-style: normal; src: url("fuentes/PublicSans-500.ttf") format("truetype"); }
+@font-face { font-family: "Public Sans"; font-weight: 600; font-style: normal; src: url("fuentes/PublicSans-600.ttf") format("truetype"); }
+
+:root {
+  --azul: #12355B;
+  --texto: #14202E;
+  --suave: #4A5565;
+  --borde: #D5DAE1;
+  --superficie: #f5f7fa;
+  --aviso-fondo: #fff6e5;
+  --aviso-borde: #f2d78a;
+  --aviso-texto: #7a5300;
+}
+
+@page {
+  size: Letter;
+  margin: 24mm 16mm 22mm 16mm;
+  @top-left { content: string(titulo-informe); font: 600 8pt "Public Sans"; color: #12355B; padding-top: 6mm; border-bottom: 0.6pt solid #D5DAE1; }
+  @top-right { content: string(periodo-informe); font: 400 8pt "Public Sans"; color: #4A5565; padding-top: 6mm; border-bottom: 0.6pt solid #D5DAE1; }
+  @bottom-left { content: "Datos sintéticos, calibrados sobre agregados de ONASEVI/FONAT. No usar para decisiones operativas sin validación con registros reales."; font: 400 7pt "Public Sans"; color: #4A5565; width: 82%; vertical-align: top; padding-top: 4mm; border-top: 0.6pt solid #D5DAE1; }
+  @bottom-right { content: "Página " counter(page) " de " counter(pages); font: 400 7.5pt "Public Sans"; color: #4A5565; vertical-align: top; padding-top: 4mm; border-top: 0.6pt solid #D5DAE1; }
+}
+
+* { box-sizing: border-box; }
+html { font-family: "Public Sans", Arial, Helvetica, sans-serif; font-size: 9.5pt; color: var(--texto); line-height: 1.4; }
+body { margin: 0; }
+.cadenas { display: none; }
+.cadenas .titulo { string-set: titulo-informe content(); }
+.cadenas .periodo { string-set: periodo-informe content(); }
+
+h1, h2, h3 { color: var(--azul); margin: 0; }
+h2 { font-size: 15pt; margin-bottom: 4mm; padding-bottom: 2mm; border-bottom: 1.2pt solid var(--azul); }
+h3 { font-size: 10.5pt; margin: 5mm 0 2mm; }
+p { margin: 0 0 2.5mm; }
+.suave { color: var(--suave); }
+.seccion { break-before: page; }
+
+/* Resumen */
+p.resumen { font-size: 11pt; line-height: 1.5; margin-bottom: 6mm; }
+.rotulo { font-weight: 600; color: var(--azul); font-size: 10pt; margin: 0 0 1.5mm; break-after: avoid; }
+.fuente { font-size: 7.5pt; color: var(--suave); margin: 1.5mm 0 0; }
+table.resumen-tabla { width: 100%; }
+table.resumen-tabla th, table.resumen-tabla td { font-size: 9.5pt; padding: 2mm; vertical-align: top; border-bottom: 0.5pt solid #e8ecf1; line-height: 1.4; }
+table.resumen-tabla th { font-weight: 600; color: var(--texto); width: 42%; }
+h2.siguiente { margin-top: 10mm; }
+
+/* Tablas */
+table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+thead { display: table-header-group; }
+th { text-align: left; font-size: 8.5pt; color: var(--suave); font-weight: 600; padding: 2mm 2mm; border-bottom: 1pt solid var(--borde); }
+td { padding: 1.5mm 2mm; border-bottom: 0.5pt solid #e8ecf1; vertical-align: top; }
+tr { break-inside: avoid; }
+.num { text-align: right; }
+th.num { text-align: right; }
+.tabla-bloque { break-inside: avoid; margin-bottom: 4mm; }
+.chip { display: inline-block; padding: 0.3mm 2mm; border-radius: 3mm; font-size: 7.5pt; font-weight: 600; border: 0.6pt solid var(--borde); }
+.chip.alto { background: #fdecea; color: #8a1c13; border-color: #f3b9b3; }
+.chip.medio { background: #fff6e5; color: #7a5300; border-color: #f2d78a; }
+.chip.bajo { background: #eaf5ee; color: #1d5b34; border-color: #b6dcc3; }
+
+/* Gráficos */
+figure { margin: 0 0 5mm; break-inside: avoid; }
+figcaption { font-weight: 600; color: var(--azul); font-size: 10pt; margin-bottom: 1.5mm; break-after: avoid; }
+figure svg { width: 100%; height: auto; display: block; }
+.nota { font-size: 8.5pt; color: var(--suave); margin: 1mm 0 0; }
+
+/* Listas: el marcador es texto real (no ::marker) para que se extraiga con el texto del ítem */
+.lista .item { font-size: 9.5pt; margin: 0 0 2.2mm; padding-left: 4.2mm; text-indent: -4.2mm; break-inside: avoid; }
+.lista .vineta { color: var(--azul); }

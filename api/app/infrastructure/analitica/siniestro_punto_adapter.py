@@ -9,6 +9,7 @@ de recorrer, no hace falta pandas ni un índice)."""
 from __future__ import annotations
 
 import csv
+from collections.abc import Callable
 from datetime import date
 from pathlib import Path
 
@@ -31,7 +32,25 @@ _COLUMNAS_REQUERIDAS = {
 }
 
 
-def _fila_a_punto(fila: dict[str, str]) -> SiniestroPunto:
+# `siniestros.csv` escribe estas categorías sin tildes. Se muestran con tilde
+# (opciones de filtro, filtros y puntos usan siempre el mismo texto). Mapa
+# explícito: un valor que no esté aquí se deja tal cual, nunca se adivina.
+_TIPO_SINIESTRO_CON_TILDES = {
+    "Colision": "Colisión",
+    "Caracteristicas especiales": "Características especiales",
+}
+_TIPO_VEHICULO_CON_TILDES = {
+    "Automovil": "Automóvil",
+    "Camion": "Camión",
+}
+
+
+def _fila_a_punto(
+    fila: dict[str, str], nombre_distrito: Callable[[str, str], str] | None = None
+) -> SiniestroPunto:
+    distrito = fila["distrito"]
+    if nombre_distrito is not None:
+        distrito = nombre_distrito(distrito, fila["departamento"])
     return SiniestroPunto(
         id_siniestro=fila["id_siniestro"],
         fecha=date.fromisoformat(fila["fecha"]),
@@ -40,18 +59,25 @@ def _fila_a_punto(fila: dict[str, str]) -> SiniestroPunto:
         latitud=float(fila["latitud"]),
         longitud=float(fila["longitud"]),
         departamento=fila["departamento"],
-        distrito=fila["distrito"],
-        tipo_siniestro=fila["tipo_siniestro"],
+        distrito=distrito,
+        tipo_siniestro=_TIPO_SINIESTRO_CON_TILDES.get(fila["tipo_siniestro"], fila["tipo_siniestro"]),
         factor_causante=fila["factor_causante"],
-        tipo_vehiculo=fila["tipo_vehiculo"],
+        tipo_vehiculo=_TIPO_VEHICULO_CON_TILDES.get(fila["tipo_vehiculo"], fila["tipo_vehiculo"]),
         fallecidos=int(fila["fallecidos"]),
         lesionados=int(fila["lesionados"]),
     )
 
 
 class SiniestroPuntoAdapter:
-    def __init__(self, ruta_siniestros: Path) -> None:
+    def __init__(
+        self,
+        ruta_siniestros: Path,
+        nombre_distrito: Callable[[str, str], str] | None = None,
+    ) -> None:
+        """`nombre_distrito(distrito, departamento)` devuelve el nombre para
+        mostrar (con tildes). Opcional: sin él se usa el texto del CSV."""
         self._ruta = ruta_siniestros
+        self._nombre_distrito = nombre_distrito
         self._puntos: list[SiniestroPunto] | None = None
         self._opciones: OpcionesFiltroSiniestros | None = None
 
@@ -66,7 +92,7 @@ class SiniestroPuntoAdapter:
                 raise SiniestroPuntoRepositoryError(
                     f"{self._ruta} no tiene las columnas esperadas: faltan {faltantes}"
                 )
-            puntos = [_fila_a_punto(fila) for fila in lector]
+            puntos = [_fila_a_punto(fila, self._nombre_distrito) for fila in lector]
 
         if not puntos:
             raise SiniestroPuntoRepositoryError(f"{self._ruta}: no tiene filas")

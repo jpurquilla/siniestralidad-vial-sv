@@ -4,11 +4,12 @@ y validación de entrada."""
 from __future__ import annotations
 
 from datetime import date
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.config import settings
-from app.domain.models import Franja, FuentePrecipitacion, Tercil
+from app.domain.models import Franja, FuenteParque, FuentePrecipitacion, Tercil
 
 AVISO_DATOS_SINTETICOS = (
     "El conjunto de datos es sintético, calibrado sobre agregados de "
@@ -36,6 +37,8 @@ class DistritoOut(BaseModel):
     pct_urbano: float
     poblacion: int
     poblacion_baja: bool
+    pct_hogares_auto: float
+    pct_trabaja_otro_lugar: float
 
 
 class DistritosResponse(BaseModel):
@@ -55,6 +58,15 @@ class PrediccionRequest(BaseModel):
         "Si se omite, se usa la normal climatológica del distrito y mes.",
     )
 
+    factor_prcp: float | None = Field(
+        default=None,
+        ge=-1,
+        le=1,
+        description="Escenario relativo a la normal: la precipitación de cada distrito es "
+        "normal_del_distrito × (1 + factor_prcp), limitada al rango observado en el "
+        "entrenamiento. -1 = sin lluvia, 0 = normal, 1 = el doble. Excluyente con prcp_mensual.",
+    )
+
     @field_validator("fecha_inicio", "fecha_fin")
     @classmethod
     def _fecha_en_rango(cls, fecha: date) -> date:
@@ -62,6 +74,8 @@ class PrediccionRequest(BaseModel):
 
     @model_validator(mode="after")
     def _rango_valido(self) -> "PrediccionRequest":
+        if self.prcp_mensual is not None and self.factor_prcp is not None:
+            raise ValueError("Envíe prcp_mensual o factor_prcp, no ambos.")
         if self.fecha_fin < self.fecha_inicio:
             raise ValueError("fecha_fin no puede ser anterior a fecha_inicio.")
         dias = (self.fecha_fin - self.fecha_inicio).days + 1
@@ -75,12 +89,39 @@ class PrediccionRequest(BaseModel):
         return self
 
 
+class RangoPrecipitacionOut(BaseModel):
+    minimo_mm: float
+    maximo_mm: float
+    anio_inicio: int
+    anio_fin: int
+
+
+class CausaEsperadaOut(BaseModel):
+    causa: str = Field(description="factor_causante, con el mismo texto que el filtro de hotspots.")
+    esperado: float = Field(description="siniestros_esperados × proporción de la causa en la franja.")
+    proporcion: float
+
+
 class PrediccionCeldaOut(BaseModel):
     distrito_codigo: str
     fecha: date
     franja: Franja
     siniestros_esperados: float
     fuente_prcp: FuentePrecipitacion
+    fuente_parque: FuenteParque = Field(
+        description="'observado': crec_parque_12m del mes consultado (2022-01 a 2026-06). "
+        "'ultimo_disponible': fecha fuera de ese rango, se usó el último mes disponible."
+    )
+    prcp_mensual: float = Field(
+        description="mm de precipitación mensual usados en la predicción (el valor enviado "
+        "o la normal climatológica del distrito y mes)."
+    )
+    por_causa: list[CausaEsperadaOut] = Field(
+        default_factory=list,
+        description="Los siniestros esperados repartidos por causa según la proporción histórica "
+        "(2022-2024) de cada causa en la franja, de mayor a menor. La causa se conoce después del "
+        "siniestro: no es una variable del modelo. La suma de `esperado` es `siniestros_esperados`.",
+    )
 
 
 class PrediccionResponse(BaseModel):
@@ -94,9 +135,9 @@ class RankingItemOut(BaseModel):
     siniestros_esperados: float
     tercil: Tercil
     confiabilidad_spearman: float = Field(
-        description="Spearman de ordenamiento de ESE tercil en la evaluación de NB07 "
-        "(test 2025-2026). El tercil medio ordena mal (~0.65): es una limitación "
-        "documentada del modelo, no un defecto de este endpoint."
+        description="Spearman de ordenamiento de ESE tercil en el conjunto de prueba "
+        "2025-2026, con el modelo final (NB12). Es descriptivo: según NB08 depende "
+        "más del ancho del tercil que del modelo."
     )
 
 
@@ -130,18 +171,55 @@ class RankingQuery(BaseModel):
         return self
 
 
+class TPareadaMensualOut(BaseModel):
+    n_meses: int
+    t: float
+    p: float
+    meses_que_mejora: int
+
+
+class DieboldMarianoOut(BaseModel):
+    DM: float
+    p: float
+    dias: int
+
+
+class PruebasSignificanciaOut(BaseModel):
+    t_pareada_mensual: TPareadaMensualOut
+    diebold_mariano: DieboldMarianoOut
+
+
+class ImportanciaShapOut(BaseModel):
+    variable: str
+    valor: float
+
+
+class CalibracionFranjaOut(BaseModel):
+    franja: Franja
+    calibracion: float = Field(description="predicho/observado en el conjunto de prueba. 1.0 = perfecta.")
+
+
 class ModeloInfoResponse(BaseModel):
     nombre: str
+    version_modelo: str
     fecha_entrenamiento: str
     variables: list[str]
     offset: str
-    metricas: dict
+    metricas: dict = Field(description="Métricas del modelo final en el conjunto de prueba 2025-2026.")
+    metricas_referencia_nb07: dict = Field(
+        description="Métricas del modelo de NB07 en el mismo conjunto de prueba. Solo referencia "
+        "histórica: NO es el modelo vigente."
+    )
+    pruebas_significancia: PruebasSignificanciaOut
+    importancia_shap: list[ImportanciaShapOut] = Field(description="Ordenada de mayor a menor.")
+    calibracion_por_franja: list[CalibracionFranjaOut]
     limitaciones: list[str]
 
 
 class HealthResponse(BaseModel):
     estado: str
     modelo_cargado: bool
+    version_modelo: str
     log_tasa_base: float | None
     prediccion_canaria_ok: bool
     version: str
@@ -169,9 +247,24 @@ class ImpactoAnualOut(BaseModel):
 class ImpactoResumenItemOut(BaseModel):
     metrica: str
     periodo: str
-    variacion_interanual_pct: float | None
+    variacion_interanual_pct: float | None = Field(
+        description="Variación interanual en %. Es null (explícito, nunca omitido) cuando "
+        "no hay año previo comparable, p. ej. el período parcial 2026 ene-jun."
+    )
     lectura: str = Field(
         description="Nunca afirma causalidad: la ley coincide con el cambio, no lo causa."
+    )
+
+
+class TasaPorVehiculoOut(BaseModel):
+    anio: str
+    parque_vehicular: int = Field(description="Vehículos registrados (ONASEVI) en la fecha de corte.")
+    fecha_corte_parque: date
+    siniestros_por_1000_vehiculos: float
+    fallecidos_por_10000_vehiculos: float
+    parcial: bool = Field(description="True si el año no está completo (siniestros/fallecidos de la serie parcial).")
+    parque_es_dato_real: bool = Field(
+        default=True, description="El parque es dato real del registro vehicular, no sintético."
     )
 
 
@@ -179,6 +272,7 @@ class ImpactoLeyResponse(BaseModel):
     aviso: str = AVISO_RETROSPECTIVO
     fecha_aprobacion_ley: date
     serie_anual: list[ImpactoAnualOut]
+    tasas_por_vehiculo: list[TasaPorVehiculoOut]
     resumen: list[ImpactoResumenItemOut]
     limitaciones: list[str]
 
@@ -218,7 +312,10 @@ class ComparacionHistoricaResponse(BaseModel):
 
 class GrupoEquidadOut(BaseModel):
     grupo: str
-    calibracion: float = Field(description="sum(observado)/sum(predicho) del grupo. 1.0 = calibración perfecta.")
+    calibracion: float = Field(
+        description="sum(predicho)/sum(observado) del grupo en el conjunto de prueba. "
+        "1.0 = calibración perfecta; >1 = el modelo sobreestima."
+    )
     spearman: float = Field(description="Correlación de Spearman entre predicho y observado dentro del grupo.")
     n_distritos: int
 
@@ -260,8 +357,68 @@ class SiniestrosPuntosResponse(BaseModel):
     puntos: list[SiniestroPuntoOut]
 
 
+AVISO_UBICACIONES_SIMULADAS = (
+    "Las ubicaciones del conjunto de datos son simuladas y no tienen precisión por "
+    "debajo de un kilómetro; por eso los siniestros se muestran agregados."
+)
+
+
+class HexagonoOut(BaseModel):
+    id: str
+    conteo: int
+    distritos: list[str] = Field(description="Distritos de los siniestros que caen en el hexágono.")
+    centro: tuple[float, float] = Field(description="(latitud, longitud)")
+    vertices: list[tuple[float, float]] = Field(description="6 vértices (latitud, longitud).")
+
+
+class SiniestrosHexResponse(BaseModel):
+    aviso: str = AVISO_UBICACIONES_SIMULADAS
+    agregacion: Literal["hex"] = "hex"
+    lado_km: float = Field(description="Lado del hexágono (no el ancho) en km.")
+    total: int = Field(description="Suma de los conteos: todos los siniestros del filtro.")
+    hexagonos: list[HexagonoOut]
+
+
+class DistritoAgregadoOut(BaseModel):
+    distrito_codigo: str
+    nombre: str
+    departamento: str
+    siniestros: int
+    poblacion: int
+    tasa_por_10mil: float = Field(description="Siniestros por cada 10,000 habitantes.")
+
+
+class SiniestrosDistritoResponse(BaseModel):
+    aviso: str = AVISO_UBICACIONES_SIMULADAS
+    agregacion: Literal["distrito"] = "distrito"
+    total: int = Field(description="Suma de los conteos: todos los siniestros del filtro.")
+    distritos: list[DistritoAgregadoOut] = Field(description="Los 103 distritos, también con conteo 0.")
+
+
 class OpcionesFiltroSiniestrosResponse(BaseModel):
     tipos_siniestro: list[str]
     tipos_vehiculo: list[str]
     factores_causantes: list[str]
     departamentos: list[str]
+
+
+class ProporcionCausaOut(BaseModel):
+    causa: str
+    proporcion: float
+
+
+class ComposicionFranjaOut(BaseModel):
+    franja: Franja
+    n_siniestros: int = Field(description="Siniestros de la franja en el periodo de entrenamiento.")
+    causas: list[ProporcionCausaOut] = Field(description="De mayor a menor; suman 1.")
+
+
+class ComposicionCausasResponse(BaseModel):
+    aviso: str = (
+        "Proporción histórica de cada causa por franja horaria en el periodo de entrenamiento. "
+        "La causa se conoce después del siniestro: no es una variable del modelo y estos valores "
+        "no indican la causa de un siniestro en particular."
+    )
+    periodo_inicio: date
+    periodo_fin: date
+    franjas: list[ComposicionFranjaOut]

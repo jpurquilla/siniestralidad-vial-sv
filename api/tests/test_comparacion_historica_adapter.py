@@ -1,10 +1,10 @@
 """Tests del adaptador de comparación histórica (observado real vs. predicho
-por el modelo de NB07, agregados por distrito sobre matriz_frecuencia_v2.csv).
+por el modelo final de NB12, agregados por distrito sobre matriz_frecuencia_v3.csv.gz).
 
 Regla D1 de NB08 (exigir_particion_de_diagnostico): el conjunto de prueba es
 la única fuente válida para reportar una métrica de desempeño — nunca se
 mezcla con train, porque el modelo ya vio esas filas al entrenar y eso infla
-la calibración/Spearman de forma artificial. matriz_frecuencia_v2.csv trae
+la calibración/Spearman de forma artificial. matriz_frecuencia_v3.csv.gz trae
 una columna `split` (train=2022-2024, test=2025-2026); este adaptador debe
 filtrar a `split == "test"` antes de agregar, igual que NB08 exige en los
 notebooks.
@@ -19,6 +19,7 @@ rompe el offset, acá predicho saldría ~415,000× más grande."""
 from __future__ import annotations
 
 import csv
+import gzip
 
 import pytest
 
@@ -41,7 +42,7 @@ class PredictorFalsoUnoPorFila:
 @pytest.fixture(scope="module")
 def total_filas_test_por_distrito() -> dict[str, int]:
     conteo: dict[str, int] = {}
-    with settings.ruta_matriz_frecuencia.open(encoding="utf-8") as fh:
+    with gzip.open(settings.ruta_matriz_frecuencia, "rt", encoding="utf-8") as fh:
         for fila in csv.DictReader(fh):
             if fila["split"] == "test":
                 conteo[fila["distrito_key"]] = conteo.get(fila["distrito_key"], 0) + 1
@@ -55,7 +56,7 @@ class TestAgregacionConPredictorFalso:
         resultado = {c.distrito_codigo: c for c in adapter.por_distrito()}
 
         observado_esperado_san_salvador = 0.0
-        with settings.ruta_matriz_frecuencia.open(encoding="utf-8") as fh:
+        with gzip.open(settings.ruta_matriz_frecuencia, "rt", encoding="utf-8") as fh:
             for fila in csv.DictReader(fh):
                 if fila["distrito_key"] == "san salvador" and fila["split"] == "test":
                     observado_esperado_san_salvador += float(fila["n_siniestros"])
@@ -100,7 +101,7 @@ class TestIntegracionConModeloReal:
 
     def test_predicho_total_queda_en_el_mismo_orden_de_magnitud_que_observado(self):
         xgboost_adapter = XGBoostFrecuenciaAdapter(
-            settings.ruta_modelo_frecuencia, settings.ruta_especificacion_nb07
+            settings.directorio_modelos, settings.ruta_especificacion_nb12
         )
         xgboost_adapter.cargar_y_validar()
 

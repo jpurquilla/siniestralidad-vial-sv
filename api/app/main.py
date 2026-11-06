@@ -7,11 +7,17 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.application.agregar_siniestros import AgregarSiniestros
+from app.application.composicion_causas import CalcularComposicionCausas
+from app.application.composicion_vehiculos import CalcularComposicionVehiculos
+from app.application.generar_informe_periodo import GenerarInformePeriodo
 from app.application.calcular_equidad import CalcularEquidad
 from app.application.predecir_celda import DistritoNoEncontradoError, PredecirCelda
 from app.application.ranking_distritos import RankingDistritos
@@ -26,17 +32,24 @@ from app.infrastructure.analitica.usuarios_vulnerables_adapter import (
 )
 from app.infrastructure.geo.distrito_repository import DistritoRepository
 from app.infrastructure.geo.geojson_adapter import GeoJsonAdapter
+from app.infrastructure.informes.renderer_excel import RendererExcel
+from app.infrastructure.informes.renderer_pdf import RendererPdf
 from app.infrastructure.modelo.calendario_adapter import CalendarioAdapter
 from app.infrastructure.modelo.clima_adapter import ClimaAdapter
 from app.infrastructure.modelo.exposicion_adapter import ExposicionAdapter
+from app.domain.models import COLUMNAS_MODELO
 from app.infrastructure.modelo.info_modelo import cargar_info_modelo
+from app.infrastructure.modelo.parque_adapter import ParqueAdapter
 from app.infrastructure.modelo.tercil_repository import TercilRepository
 from app.infrastructure.modelo.xgboost_adapter import XGBoostFrecuenciaAdapter
 from app.infrastructure.web.routers import (
+    clima,
+    composicion_causas,
     comparacion_historica,
     distritos,
     equidad,
     impacto_ley,
+    informes,
     modelo,
     predicciones,
     ranking,
@@ -53,27 +66,33 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     logger.info("Arrancando %s...", settings.nombre_app)
 
-    xgboost_adapter = XGBoostFrecuenciaAdapter(settings.ruta_modelo_frecuencia, settings.ruta_especificacion_nb07)
+    xgboost_adapter = XGBoostFrecuenciaAdapter(
+        settings.directorio_modelos, settings.ruta_especificacion_nb12
+    )
     exposicion_adapter = ExposicionAdapter(settings.ruta_matriz_frecuencia, settings.ruta_especificacion_nb05)
     calendario_adapter = CalendarioAdapter(settings.ruta_feriados)
-    distrito_repo = DistritoRepository(settings.ruta_matriz_frecuencia, settings.ruta_siniestros)
+    parque_adapter = ParqueAdapter(settings.ruta_matriz_frecuencia)
+    distrito_repo = DistritoRepository(settings.ruta_matriz_frecuencia, settings.ruta_censo_poblacion)
     clima_adapter = ClimaAdapter(settings.ruta_matriz_frecuencia)
     tercil_repo = TercilRepository(settings.ruta_terciles)
     geojson_adapter = GeoJsonAdapter(settings.ruta_geojson_distritos)
-    impacto_ley_adapter = ImpactoLeyAdapter(settings.ruta_resultados_nb06)
+    impacto_ley_adapter = ImpactoLeyAdapter(settings.ruta_resultados_nb06, settings.ruta_parque_vehicular)
     usuarios_vulnerables_adapter = UsuariosVulnerablesAdapter(settings.ruta_matriz_severidad)
     # Reusa xgboost_adapter.predecir_lote() — nunca reimplementa la
     # inferencia (ver api/README.md §6 y el docstring del adaptador).
     comparacion_historica_adapter = ComparacionHistoricaAdapter(
         settings.ruta_matriz_frecuencia, xgboost_adapter
     )
-    siniestro_punto_repo = SiniestroPuntoAdapter(settings.ruta_siniestros)
+    siniestro_punto_repo = SiniestroPuntoAdapter(
+        settings.ruta_siniestros, nombre_distrito=distrito_repo.nombre_para_mostrar
+    )
 
     try:
         xgboost_adapter.cargar_y_validar()
         exposicion_adapter.cargar_y_validar()
         calendario_adapter.cargar_y_validar()
         distrito_repo.cargar_y_validar()
+        parque_adapter.cargar_y_validar()
         clima_adapter.cargar_y_validar()
         tercil_repo.cargar_y_validar()
         impacto_ley_adapter.cargar_y_validar()
@@ -82,6 +101,15 @@ async def lifespan(app: FastAPI):
         # sola vez acá — nunca por request (ver docstring del adaptador).
         comparacion_historica_adapter.cargar_y_validar()
         siniestro_punto_repo.cargar_y_validar()
+        # Una sola vez al arrancar; queda en memoria (proporciones 2022-2024 por franja).
+        composicion = CalcularComposicionCausas(siniestro_punto_repo).ejecutar()
+        composicion_vehiculos = CalcularComposicionVehiculos(siniestro_punto_repo).ejecutar()
+        info_modelo = cargar_info_modelo(
+            settings.ruta_metricas_nb12,
+            xgboost_adapter.version_modelo,
+            xgboost_adapter.fecha_entrenamiento,
+            list(COLUMNAS_MODELO),
+        )
     except Exception:
         logger.exception(
             "El servicio NO arrancó: falló la validación de un artefacto. "
@@ -90,24 +118,53 @@ async def lifespan(app: FastAPI):
         raise
 
     app.state.predecir_celda_uc = PredecirCelda(
-        xgboost_adapter, distrito_repo, clima_adapter, calendario_adapter, exposicion_adapter
+        xgboost_adapter,
+        distrito_repo,
+        clima_adapter,
+        calendario_adapter,
+        exposicion_adapter,
+        parque_adapter,
+        composicion,
     )
+    app.state.composicion_causas = composicion
     app.state.ranking_uc = RankingDistritos(
-        xgboost_adapter, distrito_repo, clima_adapter, calendario_adapter, exposicion_adapter, tercil_repo
+        xgboost_adapter,
+        distrito_repo,
+        clima_adapter,
+        calendario_adapter,
+        exposicion_adapter,
+        parque_adapter,
+        tercil_repo,
     )
     app.state.distrito_repo = distrito_repo
+    app.state.clima_adapter = clima_adapter
     app.state.geojson_adapter = geojson_adapter
-    app.state.info_modelo = cargar_info_modelo(settings.ruta_metricas_nb07, settings.ruta_especificacion_nb07)
+    app.state.info_modelo = info_modelo
     app.state.impacto_ley_adapter = impacto_ley_adapter
     app.state.usuarios_vulnerables_adapter = usuarios_vulnerables_adapter
     app.state.comparacion_historica_adapter = comparacion_historica_adapter
     app.state.calcular_equidad_uc = CalcularEquidad(
         comparacion_historica_adapter, distrito_repo, settings.umbral_pct_urbano_equidad
     )
+    zona_horaria = ZoneInfo(settings.zona_horaria)
+    app.state.generar_informe_periodo_uc = GenerarInformePeriodo(
+        app.state.predecir_celda_uc,
+        distrito_repo,
+        composicion,
+        composicion_vehiculos,
+        app.state.calcular_equidad_uc,
+        reloj=lambda: datetime.now(zona_horaria),
+    )
+    app.state.renderer_pdf = RendererPdf(settings.ruta_geojson_censo)
+    app.state.renderer_excel = RendererExcel()
     app.state.siniestro_punto_repo = siniestro_punto_repo
+    app.state.agregar_siniestros_uc = AgregarSiniestros(
+        siniestro_punto_repo, distrito_repo, settings.lado_hexagono_km
+    )
     app.state.estado_salud = {
         "estado": "ok",
         "modelo_cargado": True,
+        "version_modelo": xgboost_adapter.version_modelo,
         "log_tasa_base": xgboost_adapter.log_tasa_base,
         "prediccion_canaria_ok": True,
         "version": settings.version_app,
@@ -123,7 +180,7 @@ app = FastAPI(title=settings.nombre_app, version=settings.version_app, lifespan=
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origenes,
-    allow_credentials=True,
+    allow_credentials=False,  # la API no usa cookies ni sesiones
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -138,9 +195,12 @@ app.include_router(salud.router)
 app.include_router(modelo.router)
 app.include_router(distritos.router)
 app.include_router(predicciones.router)
+app.include_router(composicion_causas.router)
+app.include_router(clima.router)
 app.include_router(ranking.router)
 app.include_router(impacto_ley.router)
 app.include_router(usuarios_vulnerables.router)
 app.include_router(comparacion_historica.router)
 app.include_router(equidad.router)
 app.include_router(siniestros.router)
+app.include_router(informes.router)

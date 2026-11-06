@@ -39,6 +39,8 @@ def _distrito(codigo: str, pct_urbano: float, poblacion_baja: bool) -> Distrito:
         pct_urbano=pct_urbano,
         poblacion=10_000,
         poblacion_baja=poblacion_baja,
+        pct_hogares_auto=0.3,
+        pct_trabaja_otro_lugar=0.1,
     )
 
 
@@ -74,7 +76,7 @@ class TestClasificacionPorUmbral:
 
 
 class TestCalibracion:
-    def test_calibracion_es_observado_sobre_predicho(self):
+    def test_calibracion_es_predicho_sobre_observado(self):
         distritos = [
             _distrito("a", pct_urbano=0.9, poblacion_baja=False),
             _distrito("b", pct_urbano=0.9, poblacion_baja=False),
@@ -89,8 +91,17 @@ class TestCalibracion:
         resultado = caso_uso.ejecutar()
 
         urbano = next(g for g in resultado.urbano_rural if g.grupo == "Urbano")
-        # (100+50) / (80+40) = 150/120 = 1.25
-        assert urbano.calibracion == pytest.approx(1.25)
+        # (80+40) / (100+50) = 120/150 = 0.8: el modelo subestima un 20%
+        assert urbano.calibracion == pytest.approx(0.8)
+
+    def test_sobreestimacion_da_calibracion_mayor_a_uno(self):
+        distritos = [_distrito("r", pct_urbano=0.1, poblacion_baja=False)]
+        comparaciones = [ComparacionDistrito("r", observado=100, predicho=120)]
+        caso_uso = CalcularEquidad(
+            ComparacionFalsa(comparaciones), DistritoRepositorioFalso(distritos), umbral_pct_urbano=0.3
+        )
+        rural = next(g for g in caso_uso.ejecutar().urbano_rural if g.grupo == "Rural")
+        assert rural.calibracion == pytest.approx(1.2)
 
 
 class TestSpearman:

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Radar Vial SV">
+  <rect width="64" height="64" rx="14" fill="#12355B"/>
+  <!-- sector barrido -->
+  <path d="M32 32 L32 10 A22 22 0 0 1 49.8 19.1 Z" fill="#3A6A9B"/>
+  <circle cx="32" cy="32" r="22" fill="none" stroke="#6F95BC" stroke-width="3"/>
+  <circle cx="32" cy="32" r="11" fill="none" stroke="#6F95BC" stroke-width="2.5"/>
+  <path d="M32 32 L49.8 19.1" stroke="#DCE6F0" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="32" cy="32" r="2.6" fill="#DCE6F0"/>
+  <!-- punto detectado -->
+  <circle cx="42.5" cy="38.5" r="5" fill="#E3A21A"/>
+</svg>

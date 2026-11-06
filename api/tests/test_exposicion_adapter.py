@@ -22,7 +22,7 @@ def adapter() -> ExposicionAdapter:
 
 
 class TestValoresConocidos:
-    """Valores tomados directamente de matriz_frecuencia_v2.csv."""
+    """Valores tomados directamente de matriz_frecuencia_v3.csv.gz."""
 
     def test_san_salvador_2024_06_15(self, adapter):
         valor = adapter.log_exposicion_v2("san salvador", date(2024, 6, 15))
