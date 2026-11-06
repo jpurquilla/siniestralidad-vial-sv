@@ -18,6 +18,9 @@ MESES = (
 )
 NUM_DISTRITOS_TEXTO = 4
 
+# Cantidad de distritos del estudio: con todos ellos el resumen habla del país.
+_TOTAL_DISTRITOS = 103
+
 _ETIQUETA_FRANJA = {
     Franja.MADRUGADA: "Madrugada (00-05)",
     Franja.MANANA: "Mañana (06-11)",
@@ -135,7 +138,12 @@ def redactar_resumen(
 
     # --- párrafo
     n = len(distritos)
-    donde = f"en el distrito {distritos[0][0]}" if n == 1 else f"en los {n} distritos"
+    if n == 1:
+        donde = f"en el distrito {distritos[0][0]}"
+    elif n == _TOTAL_DISTRITOS:
+        donde = "en el país"
+    else:
+        donde = f"en los {n} distritos"
     inf, sup = ic90
     if int(total + 0.5) == 1:
         cantidad = "se espera cerca de 1 siniestro"

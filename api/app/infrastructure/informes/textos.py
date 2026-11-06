@@ -26,6 +26,7 @@ def supuestos_texto(i: InformePeriodo) -> list[str]:
     vehiculos = ", ".join(f"{v.tipo} {formato.porcentaje(v.porcentaje)}" for v in s.composicion_vehiculos)
     textos += [
         "Los valores son promedios (esperados), no conteos observados.",
+        "El conjunto de datos asigna todos los siniestros del país a los 103 distritos del estudio.",
         "El esperado por causa es el esperado de cada franja multiplicado por la proporción "
         "histórica (2022-2024) de esa causa en la franja.",
         "El esperado por día de la semana es un promedio: la suma de ese día en el periodo dividida "

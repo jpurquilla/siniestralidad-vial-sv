@@ -422,7 +422,7 @@ class TestEndpointJson:
         texto = resumen["texto"]
         assert texto.startswith(
             f"Entre el 2 de noviembre y el 2 de diciembre de 2026 se esperan unos {conteo(total['esperado'])} "
-            f"siniestros en los 103 distritos (entre {total['ic90_inf']:,d} y {total['ic90_sup']:,d} con 90% de probabilidad). "
+            f"siniestros en el país (entre {total['ic90_inf']:,d} y {total['ic90_sup']:,d} con 90% de probabilidad). "
         )
         franja = max(informe["por_franja"], key=lambda f: f["esperado"])
         pct_franja = round(franja["esperado"] / total["esperado"] * 100)

@@ -43,8 +43,8 @@ def test_forma_completa_del_parrafo_y_las_4_filas():
     r = _resumen()
     # 680 / 1982.4 = 34.3% -> 34; 615.1 / 1982.4 = 31.0% -> 31; noche+madrugada = 15%; día = 4%
     assert r.texto == (
-        "Entre el 2 de noviembre y el 2 de diciembre de 2026 se esperan unos 1,982 siniestros en los 103 "
-        "distritos (entre 1,909 y 2,055 con 90% de probabilidad). La tarde concentra el 34% y los sábados "
+        "Entre el 2 de noviembre y el 2 de diciembre de 2026 se esperan unos 1,982 siniestros en el "
+        "país (entre 1,909 y 2,055 con 90% de probabilidad). La tarde concentra el 34% y los sábados "
         "son, en promedio, los días de mayor riesgo. San Salvador, San Miguel, Santa Tecla y Santa Ana "
         "reúnen el 31% del total. De noche y de madrugada, la ebriedad explica cerca del 15% de los "
         "siniestros esperados, frente al 4% del día."
