@@ -24,7 +24,8 @@ conteo (Poisson / Binomial Negativa) e interpretabilidad (SHAP).
   - [Fuentes de datos](#fuentes-de-datos)
   - [Instalación](#instalación)
   - [Reproducción](#reproducción)
-  - [Notebooks (Etapa 1)](#notebooks-etapa-1)
+  - [Notebooks](#notebooks)
+  - [API de predicción](#api-de-predicción)
   - [Convenciones del proyecto](#convenciones-del-proyecto)
   - [Licencia](#licencia)
 
@@ -40,14 +41,16 @@ accidentes**, integrando variables climáticas, de exposición poblacional y de
 calendario.
 
 El trabajo sigue la metodología **CRISP-DM** y se organiza en cuatro etapas de
-evaluación. Este repositorio corresponde a la **Etapa 1** (descripción de datos,
-EDA, preprocesamiento, modelos baseline e interpretabilidad inicial).
+evaluación. Este repositorio contiene el análisis completo (NB01–NB12: datos,
+EDA, modelos, calibración, clustering y modelo final) y la **API** que sirve el
+modelo final.
 
-Técnicas previstas a lo largo del proyecto:
+Técnicas utilizadas:
 
 - **Clustering espacio-temporal** — ST-DBSCAN
 - **Modelos de conteo** — Regresión de Poisson y Binomial Negativa (selección por AIC)
-- **Modelos predictivos** — Random Forest y XGBoost
+- **Modelos predictivos** — Random Forest y XGBoost (con offset de exposición)
+- **Calibración y submodelo de severidad**
 - **Interpretabilidad** — SHAP
 
 ---
@@ -70,35 +73,27 @@ o públicos**. Ver detalle completo en [`docs/fuentes_de_datos.md`](docs/fuentes
 
 ## Estructura del repositorio
 
+```text
 siniestralidad-vial-sv/
+├── api/              # API FastAPI (arquitectura hexagonal) — ver api/README.md
 ├── data/
 │   ├── raw/          # datos de entrada (se versionan en este proyecto)
-│   │   ├── siniestros.csv
-│   │   ├── victimas.csv
-│   │   ├── TAB_POB_AREA_1.xlsx        # censo 2024 (crudo oficial)
-│   │   ├── Estaciones SLV.xlsx        # catálogo de estaciones
-│   │   ├── feriados_elsalvador_2022_2026.xlsx
-│   │   └── clima/                     # 6 estaciones Meteostat horarias
-│   └── processed/    # datos derivados (se generan en NB03)
-├── notebooks/
-│   ├── NB01_descripcion_dataset.ipynb
-│   ├── NB02_eda.ipynb
-│   ├── NB03_preprocesamiento_features.ipynb
-│   └── NB04_modelos_baseline.ipynb
+│   └── processed/    # datos derivados (se generan en NB03 y siguientes)
+├── notebooks/        # NB01 … NB12
 ├── src/
-│   ├── init.py
 │   └── config.py     # rutas, seed=42 y cargadores de datos
 ├── models/           # modelos entrenados .pkl (se versionan)
 ├── reports/
-│   ├── figures/      # gráficos del EDA
+│   ├── figures/      # gráficos
 │   └── results/      # métricas .json y tablas comparativas
 ├── docs/
 │   ├── fuentes_de_datos.md    # procedencia, licencias, limitaciones
 │   └── diccionario_datos.md   # descripción de cada columna
+├── Dockerfile        # imagen de la API
 ├── .env.example
-├── .gitignore
 ├── requirements.txt
 └── README.md
+```
 
 ---
 
@@ -160,22 +155,42 @@ Verificar que el entorno y los datos están correctos:
 python -m src.config
 ```
 
-Ejecutar los notebooks **en orden** (`NB01 → NB04`). Cada uno consume las
+Ejecutar los notebooks **en orden** (`NB01 → NB12`). Cada uno consume las
 salidas del anterior; NB03 genera los datos derivados en `data/processed/`.
 
 ---
 
-## Notebooks (Etapa 1)
+## Notebooks
 
-| Notebook                               | Contenido                                                          | Criterio de rúbrica                             |
-| -------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------- |
-| **NB01** — Descripción del dataset     | Fuentes, tamaño, variables, calibración                            | Calidad y descripción de datos                  |
-| **NB02** — EDA                         | Análisis exploratorio + visualizaciones obligatorias               | EDA completo y visualizaciones                  |
-| **NB03** — Preprocesamiento y features | Grilla distrito×fecha×franja, joins (población, clima, calendario) | Preprocesamiento y feature engineering          |
-| **NB04** — Modelos baseline            | Predictor ingenuo, Poisson/GLM, Random Forest + SHAP               | Modelos baseline y métricas · Interpretabilidad |
+| Notebook                                        | Contenido                                                          |
+| ----------------------------------------------- | ------------------------------------------------------------------ |
+| **NB01** — Descripción del dataset              | Fuentes, tamaño, variables, calibración                            |
+| **NB02** — EDA                                  | Análisis exploratorio y visualizaciones                            |
+| **NB03** — Preprocesamiento y features          | Grilla distrito×fecha×franja, joins (población, clima, calendario) |
+| **NB04** — Modelos baseline                     | Predictor ingenuo, Poisson/GLM, Random Forest + SHAP               |
+| **NB05** — Exposición y tendencia               | Offset de exposición y tendencia temporal                          |
+| **NB06** — Impacto de la ley de tolerancia cero | Evaluación del efecto de la ley                                    |
+| **NB07** — Optimización de modelos avanzados    | Optuna, XGBoost, comparación de modelos                            |
+| **NB08** — Tercil medio y validación            | Análisis por terciles y validación                                 |
+| **NB09** — Calibración y submodelo de severidad | Calibración y letalidad/severidad                                  |
+| **NB10** — Clustering espacio-temporal          | ST-DBSCAN                                                          |
+| **NB11** — Expansión de variables               | Nuevas variables candidatas                                        |
+| **NB12** — Modelo final ampliado                | Modelo final servido por la API                                    |
 
 Cada notebook escribe **primero** las celdas de explicación (metodología y
 justificación) y luego el código, para que sea legible como documento.
+
+---
+
+## API de predicción
+
+El directorio [`api/`](api/README.md) contiene un backend FastAPI que sirve el
+modelo final (NB12) sin reentrenarlo. Instalación, endpoints y arquitectura en
+[`api/README.md`](api/README.md). Con Docker:
+
+```bash
+docker build -t siniestralidad-api .
+```
 
 ---
 

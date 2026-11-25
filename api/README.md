@@ -367,7 +367,7 @@ Por eso este servicio:
    regresión más importante del proyecto: reproduce el bug a propósito
    (construyendo el `base_margin` a mano, sin `log_tasa_base`) y confirma
    que la predicción se dispara ~415,125× — el mismo número que reporta
-   `NB07_RESUMEN.md`.
+   `notebooks/NB07_optimizacion_modelos_avanzados.ipynb`.
 
 ---
 
@@ -403,7 +403,7 @@ Los tests se organizan así (`pytest` corre toda la suite):
   artefactos reales del repositorio.
 - `test_impacto_ley_adapter.py`, `test_usuarios_vulnerables_adapter.py` —
   los dos adaptadores retrospectivos, verificados reproduciendo a mano los
-  números ya publicados en NB06/NB09_RESUMEN.md antes de escribir el código.
+  números ya publicados en los notebooks NB06/NB09 antes de escribir el código.
 - `test_comparacion_historica_adapter.py` — agregación con un predictor
   falso (rápido) más un test de integración con el modelo real que verifica
   que la razón predicho/observado quede en un rango sano (la misma clase de

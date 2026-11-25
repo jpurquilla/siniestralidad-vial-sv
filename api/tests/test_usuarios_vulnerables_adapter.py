@@ -3,7 +3,7 @@
 Agrega matriz_severidad.csv (89,946 siniestros reales del conjunto sintético,
 uno por fila). La metodología (letalidad = siniestros con al menos un
 fallecido / total de siniestros del grupo) se verificó reproduciendo a mano
-los números ya publicados en NB09_RESUMEN.md antes de escribir el adaptador:
+los números ya publicados en el notebook NB09 antes de escribir el adaptador:
 Peatón 42.47% / 0.2294, Motociclista 36.94% / 0.1500, edad 71+ → 0.2982,
 edad 0-15 → 0.0900. Estos tests fijan esos mismos números como contrato."""
 

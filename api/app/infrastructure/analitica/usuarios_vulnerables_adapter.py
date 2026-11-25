@@ -4,7 +4,7 @@ identificar a las víctimas).
 
 Agrega `matriz_severidad.csv` (89,946 siniestros reales del conjunto
 sintético). Metodología verificada contra los números ya publicados en
-NB09_RESUMEN.md antes de escribir este adaptador (ver el docstring de
+el notebook NB09 antes de escribir este adaptador (ver el docstring de
 tests/test_usuarios_vulnerables_adapter.py para el detalle): la letalidad de
 un grupo es la fracción de sus siniestros que tuvieron al menos un
 fallecido — no el promedio de fallecidos por siniestro."""
